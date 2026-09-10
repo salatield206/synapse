@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Synapse Study System</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#1a0029">
+</head>
+<body>
+    <div id="login-screen" class="screen active">
+        <div class="logo-container">
+            <div class="logo-s">S</div>
+            <h1 class="brand-title">SYNAPSE</h1>
+            <p class="tagline">SYNAPSE STUDY SYSTEM</p>
+        </div>
+        <div class="input-group">
+            <label>E-mail Acadêmico</label>
+            <input type="email" class="input-real" placeholder="estudante@universidade.edu.br">
+        </div>
+        <div class="input-group">
+            <label>Senha</label>
+            <input type="password" class="input-real" placeholder="••••••••••••">
+        </div>
+        <button class="btn-primary" onclick="entrarNoApp()">Acessar o Hub</button>
+    </div>
+
+    <div id="dashboard-screen" class="screen">
+        <div class="dash-header">
+            <h2>Hipocampo Digital</h2>
+            <p>Repositório Universal Ativo</p>
+        </div>
+        <h3 class="section-title">Adicionar Novo Estímulo</h3>
+        <div class="grid-container">
+            <button class="card" onclick="alert('Logo abriremos o bloco de notas para você digitar!')">
+                <span class="card-icon">📝</span>
+                <span class="card-label">Matéria<br>Escrita</span>
+            </button>
+            <button class="card">
+                <span class="card-icon">📷</span>
+                <span class="card-label">Matéria<br>por Foto</span>
+            </button>
+            <button class="card">
+                <span class="card-icon">🎧</span>
+                <span class="card-label">Matéria<br>por Áudio</span>
+            </button>
+            <button class="card">
+                <span class="card-icon">🔗</span>
+                <span class="card-label">Matéria<br>de Link</span>
+            </button>
+            <button class="card full-width">
+                <span class="card-icon">📄</span>
+                <span class="card-label">Matéria por Documento (PDF, Doc)</span>
+            </button>
+        </div>
+        <h3 class="section-title">Revisão Recente</h3>
+        <div class="list-item">
+            <div class="li-title">Legislação Brasileira de Trânsito</div>
+            <div class="li-desc">Módulo de Leitura • Há 2 horas</div>
+        </div>
+        <div class="list-item">
+            <div class="li-title">Mecânica: Bloco Inferior do Civic</div>
+            <div class="li-desc">Documento PDF • Ontem</div>
+        </div>
+        <div class="list-item">
+            <div class="li-title">Astronomia: Corpos Celestes</div>
+            <div class="li-desc">Anotação em Áudio • 3 dias atrás</div>
+        </div>
+    </div>
+    <script src="app.js"></script>
+</body>
+</html>
