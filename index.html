@@ -41,11 +41,11 @@
                 <span class="card-icon">📷</span>
                 <span class="card-label">Matéria<br>por Foto</span>
             </button>
-            <button class="card" type="button">
+            <button id="audio-card" class="card" type="button" onclick="alternarGravacao()">
                 <span class="card-icon">🎧</span>
                 <span class="card-label">Matéria<br>por Áudio</span>
             </button>
-            <button class="card" type="button">
+            <button class="card" type="button" onclick="abrirAbaDeLink()">
                 <span class="card-icon">🔗</span>
                 <span class="card-label">Matéria<br>de Link</span>
             </button>
@@ -71,7 +71,7 @@
     </div>
 
     <input id="foto-input" class="file-input" type="file" accept="image/*" capture="environment" onchange="mostrarArquivoSelecionado(this, 'foto')">
-    <input id="documento-input" class="file-input" type="file" accept="application/pdf,.pdf" onchange="mostrarArquivoSelecionado(this, 'documento')">
+    <input id="documento-input" class="file-input" type="file" accept="application/pdf,.pdf,.doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" onchange="mostrarArquivoSelecionado(this, 'documento')">
 
     <div id="materia-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
         <div class="modal-content">
@@ -89,6 +89,26 @@
                     <textarea id="materia-texto" class="input-real textarea-real" placeholder="Escreva os pontos principais da matéria..." required></textarea>
                 </div>
                 <button class="btn-primary" type="submit">Salvar matéria escrita</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="link-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="link-modal-title">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="link-modal-title">Salvar link de estudos</h2>
+                <button class="modal-close" type="button" aria-label="Fechar" onclick="fecharModalLink()">&times;</button>
+            </div>
+            <form onsubmit="salvarLink(event)">
+                <div class="input-group">
+                    <label for="link-titulo">Título</label>
+                    <input id="link-titulo" class="input-real" type="text" placeholder="Ex.: Aula de biologia" required>
+                </div>
+                <div class="input-group">
+                    <label for="link-url">Link de estudos</label>
+                    <input id="link-url" class="input-real" type="url" placeholder="https://..." required>
+                </div>
+                <button class="btn-primary" type="submit">Salvar link</button>
             </form>
         </div>
     </div>
