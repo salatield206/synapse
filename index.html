@@ -33,28 +33,29 @@
         </div>
         <h3 class="section-title">Adicionar Novo Estímulo</h3>
         <div class="grid-container">
-            <button class="card" onclick="alert('Logo abriremos o bloco de notas para você digitar!')">
+            <button class="card" type="button" onclick="abrirModalMateria()">
                 <span class="card-icon">📝</span>
                 <span class="card-label">Matéria<br>Escrita</span>
             </button>
-            <button class="card">
+            <button class="card" type="button" onclick="abrirCamera()">
                 <span class="card-icon">📷</span>
                 <span class="card-label">Matéria<br>por Foto</span>
             </button>
-            <button class="card">
+            <button class="card" type="button">
                 <span class="card-icon">🎧</span>
                 <span class="card-label">Matéria<br>por Áudio</span>
             </button>
-            <button class="card">
+            <button class="card" type="button">
                 <span class="card-icon">🔗</span>
                 <span class="card-label">Matéria<br>de Link</span>
             </button>
-            <button class="card full-width">
+            <button class="card full-width" type="button" onclick="document.getElementById('documento-input').click()">
                 <span class="card-icon">📄</span>
                 <span class="card-label">Matéria por Documento (PDF, Doc)</span>
             </button>
         </div>
         <h3 class="section-title">Revisão Recente</h3>
+        <div id="materias-salvas"></div>
         <div class="list-item">
             <div class="li-title">Legislação Brasileira de Trânsito</div>
             <div class="li-desc">Módulo de Leitura • Há 2 horas</div>
@@ -66,6 +67,29 @@
         <div class="list-item">
             <div class="li-title">Astronomia: Corpos Celestes</div>
             <div class="li-desc">Anotação em Áudio • 3 dias atrás</div>
+        </div>
+    </div>
+
+    <input id="foto-input" class="file-input" type="file" accept="image/*" capture="environment" onchange="mostrarArquivoSelecionado(this, 'foto')">
+    <input id="documento-input" class="file-input" type="file" accept="application/pdf,.pdf" onchange="mostrarArquivoSelecionado(this, 'documento')">
+
+    <div id="materia-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modal-title">Escrever matéria</h2>
+                <button class="modal-close" type="button" aria-label="Fechar" onclick="fecharModalMateria()">&times;</button>
+            </div>
+            <form onsubmit="salvarMateria(event)">
+                <div class="input-group">
+                    <label for="materia-titulo">Título</label>
+                    <input id="materia-titulo" class="input-real" type="text" placeholder="Ex.: Revolução Industrial" required>
+                </div>
+                <div class="input-group">
+                    <label for="materia-texto">Texto</label>
+                    <textarea id="materia-texto" class="input-real textarea-real" placeholder="Escreva os pontos principais da matéria..." required></textarea>
+                </div>
+                <button class="btn-primary" type="submit">Salvar matéria escrita</button>
+            </form>
         </div>
     </div>
     <script src="app.js"></script>
