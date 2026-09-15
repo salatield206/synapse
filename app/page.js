@@ -77,17 +77,17 @@ export default function Home() {
     event.target.value = '';
   }
 
-  if (!autenticado) return <main className="screen login"><div className="logo-container"><div className="logo-s">S</div><h1>SYNAPSE</h1><p>SYNAPSE STUDY SYSTEM</p></div><div className="input-group"><label>E-mail Acadêmico</label><input className="input-real" type="email" placeholder="estudante@universidade.edu.br" /></div><div className="input-group"><label>Senha</label><input className="input-real" type="password" placeholder="••••••••••••" /></div><button className="btn-primary" onClick={acessarHub}>Acessar o Hub</button></main>;
+  if (!autenticado) return <main className="screen login"><div className="logo-container"><div className="logo-s">S</div><h1>SYNAPSE</h1><p>SYNAPSE STUDY SYSTEM</p></div><div className="input-group"><label>E-mail Acadêmico</label><input className="input-real" type="email" placeholder="estudante@universidade.edu.br" /></div><div className="input-group"><label>Senha</label><input className="input-real" type="password" placeholder="••••••••••••" /></div><button type="button" className="btn-primary" onClick={acessarHub}>Acessar o Hub</button></main>;
 
   return <main className="screen dashboard">
     <header className="dash-header"><h2>Hipocampo Digital</h2><p>Repositório Universal Ativo</p></header>
     <h3 className="section-title">Adicionar Novo Estímulo</h3>
     <div className="grid-container">
-      <button className="card" onClick={() => setModal('materia')}><span className="card-icon">📝</span><span>Matéria<br />Escrita</span></button>
-      <button className="card" onClick={() => fotoInput.current.click()}><span className="card-icon">📷</span><span>Matéria<br />por Foto</span></button>
-      <button className={`card ${gravando ? 'gravando' : ''}`} onClick={alternarGravacao}><span className="card-icon">🎧</span><span>{gravando ? <>Parar<br />gravação</> : <>Matéria<br />por Áudio</>}</span></button>
-      <button className="card" onClick={() => setModal('link')}><span className="card-icon">🔗</span><span>Matéria<br />de Link</span></button>
-      <button className="card full-width" onClick={() => documentoInput.current.click()}><span className="card-icon">📄</span><span>Matéria por Documento (PDF, Doc)</span></button>
+      <button type="button" className="card" onClick={() => setModal('materia')}><span className="card-icon">📝</span><span>Matéria<br />Escrita</span></button>
+      <button type="button" className="card" onClick={() => fotoInput.current.click()}><span className="card-icon">📷</span><span>Matéria<br />por Foto</span></button>
+      <button type="button" className={`card ${gravando ? 'gravando' : ''}`} onClick={alternarGravacao}><span className="card-icon">🎧</span><span>{gravando ? <>Parar<br />gravação</> : <>Matéria<br />por Áudio</>}</span></button>
+      <button type="button" className="card" onClick={(event) => { event.preventDefault(); setModal('link'); }}><span className="card-icon">🔗</span><span>Matéria<br />de Link</span></button>
+      <button type="button" className="card full-width" onClick={() => documentoInput.current.click()}><span className="card-icon">📄</span><span>Matéria por Documento (PDF, Doc)</span></button>
     </div>
     <h3 className="section-title">Revisão Recente</h3>
     {materias.map((materia, index) => <Materia key={`${materia.criadaEm}-${index}`} materia={materia} />)}
@@ -103,5 +103,5 @@ function Materia({ materia }) {
 }
 
 function Modal({ tipo, form, setForm, fechar, salvar }) {
-  return <div className="modal active"><div className="modal-content"><div className="modal-header"><h2>{tipo === 'link' ? 'Salvar link de estudos' : 'Escrever matéria'}</h2><button className="modal-close" onClick={fechar}>&times;</button></div><form onSubmit={salvar}><div className="input-group"><label>Título</label><input className="input-real" value={form.titulo} onChange={(event) => setForm({ ...form, titulo: event.target.value })} required /></div>{tipo === 'link' ? <div className="input-group"><label>Link de estudos</label><input className="input-real" type="url" value={form.url} onChange={(event) => setForm({ ...form, url: event.target.value })} required /></div> : <div className="input-group"><label>Texto</label><textarea className="input-real textarea-real" value={form.texto} onChange={(event) => setForm({ ...form, texto: event.target.value })} required /></div>}<button className="btn-primary" type="submit">Salvar</button></form></div></div>;
+  return <div className="modal active"><div className="modal-content"><div className="modal-header"><h2>{tipo === 'link' ? 'Salvar link de estudos' : 'Escrever matéria'}</h2><button type="button" className="modal-close" onClick={fechar}>&times;</button></div><form onSubmit={salvar}><div className="input-group"><label>Título</label><input className="input-real" value={form.titulo} onChange={(event) => setForm({ ...form, titulo: event.target.value })} required /></div>{tipo === 'link' ? <div className="input-group"><label>Link de estudos</label><input className="input-real" type="url" value={form.url} onChange={(event) => setForm({ ...form, url: event.target.value })} required /></div> : <div className="input-group"><label>Texto</label><textarea className="input-real textarea-real" value={form.texto} onChange={(event) => setForm({ ...form, texto: event.target.value })} required /></div>}<button className="btn-primary" type="submit">Salvar</button></form></div></div>;
 }
