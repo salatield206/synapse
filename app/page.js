@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 
 const STORAGE_KEY = 'synapse-materias';
+const AUTH_STORAGE_KEY = 'synapse-autenticado';
 
 export default function Home() {
   const [autenticado, setAutenticado] = useState(false);
@@ -17,10 +18,16 @@ export default function Home() {
 
   useEffect(() => {
     try {
+      setAutenticado(localStorage.getItem(AUTH_STORAGE_KEY) === 'true');
       const salvas = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
       if (Array.isArray(salvas)) setMaterias(salvas);
     } catch { setMaterias([]); }
   }, []);
+
+  function acessarHub() {
+    localStorage.setItem(AUTH_STORAGE_KEY, 'true');
+    setAutenticado(true);
+  }
 
   function atualizarMaterias(novas) {
     setMaterias(novas);
@@ -70,7 +77,7 @@ export default function Home() {
     event.target.value = '';
   }
 
-  if (!autenticado) return <main className="screen login"><div className="logo-container"><div className="logo-s">S</div><h1>SYNAPSE</h1><p>SYNAPSE STUDY SYSTEM</p></div><div className="input-group"><label>E-mail Acadêmico</label><input className="input-real" type="email" placeholder="estudante@universidade.edu.br" /></div><div className="input-group"><label>Senha</label><input className="input-real" type="password" placeholder="••••••••••••" /></div><button className="btn-primary" onClick={() => setAutenticado(true)}>Acessar o Hub</button></main>;
+  if (!autenticado) return <main className="screen login"><div className="logo-container"><div className="logo-s">S</div><h1>SYNAPSE</h1><p>SYNAPSE STUDY SYSTEM</p></div><div className="input-group"><label>E-mail Acadêmico</label><input className="input-real" type="email" placeholder="estudante@universidade.edu.br" /></div><div className="input-group"><label>Senha</label><input className="input-real" type="password" placeholder="••••••••••••" /></div><button className="btn-primary" onClick={acessarHub}>Acessar o Hub</button></main>;
 
   return <main className="screen dashboard">
     <header className="dash-header"><h2>Hipocampo Digital</h2><p>Repositório Universal Ativo</p></header>
