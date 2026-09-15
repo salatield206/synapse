@@ -48,6 +48,11 @@ export default function Home() {
     setModal(null);
   }
 
+  function abrirModalLink(event) {
+    event.preventDefault();
+    setModal('link');
+  }
+
   async function alternarGravacao() {
     if (gravador.current?.state === 'recording') { gravador.current.stop(); return; }
     if (!navigator.mediaDevices || !window.MediaRecorder) return alert('Seu navegador não oferece suporte à gravação de áudio.');
@@ -86,7 +91,7 @@ export default function Home() {
       <button type="button" className="card" onClick={() => setModal('materia')}><span className="card-icon">📝</span><span>Matéria<br />Escrita</span></button>
       <button type="button" className="card" onClick={() => fotoInput.current.click()}><span className="card-icon">📷</span><span>Matéria<br />por Foto</span></button>
       <button type="button" className={`card ${gravando ? 'gravando' : ''}`} onClick={alternarGravacao}><span className="card-icon">🎧</span><span>{gravando ? <>Parar<br />gravação</> : <>Matéria<br />por Áudio</>}</span></button>
-      <button type="button" className="card" onClick={(event) => { event.preventDefault(); setModal('link'); }}><span className="card-icon">🔗</span><span>Matéria<br />de Link</span></button>
+      <button type="button" className="card" onClick={abrirModalLink}><span className="card-icon">🔗</span><span>Matéria<br />de Link</span></button>
       <button type="button" className="card full-width" onClick={() => documentoInput.current.click()}><span className="card-icon">📄</span><span>Matéria por Documento (PDF, Doc)</span></button>
     </div>
     <h3 className="section-title">Revisão Recente</h3>
