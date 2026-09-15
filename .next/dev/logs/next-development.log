@@ -4,3 +4,6 @@
 {"timestamp":"00:16:37.327","source":"Server","level":"LOG","message":"✓ Compiled in 67ms"}
 {"timestamp":"00:29:33.675","source":"Browser","level":"INFO","message":"Download the React DevTools for a better development experience: https://react.dev/link/react-devtools"}
 {"timestamp":"00:30:44.160","source":"Browser","level":"INFO","message":"Download the React DevTools for a better development experience: https://react.dev/link/react-devtools"}
+{"timestamp":"01:07:38.421","source":"Browser","level":"INFO","message":"Download the React DevTools for a better development experience: https://react.dev/link/react-devtools"}
+{"timestamp":"01:07:40.683","source":"Server","level":"WARN","message":"[next-auth][warn][NEXTAUTH_URL] \"\\nhttps://next-auth.js.org/warnings#nextauth_url\""}
+{"timestamp":"01:07:40.686","source":"Server","level":"WARN","message":"[next-auth][warn][NO_SECRET] \"\\nhttps://next-auth.js.org/warnings#no_secret\""}

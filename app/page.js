@@ -1,7 +1,6 @@
 'use client';
 
-import { signIn } from 'next-auth/react';
-import { useSession } from 'next-auth/react';
+import { signIn, signOut, useSession } from 'next-auth/react';
 import { useEffect, useRef, useState } from 'react';
 
 const STORAGE_KEY = 'synapse-materias';
@@ -38,6 +37,11 @@ export default function Home() {
     });
 
     if (!resultado?.ok) setErroLogin('E-mail ou senha inválidos.');
+  }
+
+  async function handleLogout() {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(materias));
+    await signOut({ callbackUrl: '/' });
   }
 
   function atualizarMaterias(novas) {
@@ -98,7 +102,7 @@ export default function Home() {
   if (status !== 'authenticated') return <main className="screen login"><form onSubmit={acessarHub}><div className="logo-container"><div className="logo-s">S</div><h1>SYNAPSE</h1><p>SYNAPSE STUDY SYSTEM</p></div><div className="input-group"><label>E-mail Acadêmico</label><input className="input-real" type="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="estudante@universidade.edu.br" required /></div><div className="input-group"><label>Senha</label><input className="input-real" type="password" value={senha} onChange={(event) => setSenha(event.target.value)} placeholder="••••••••••••" required /></div>{erroLogin && <p role="alert">{erroLogin}</p>}<button type="submit" className="btn-primary">Acessar o Hub</button></form></main>;
 
   return <main className="screen dashboard">
-    <header className="dash-header"><h2>Hipocampo Digital</h2><p>Repositório Universal Ativo</p></header>
+    <header className="dash-header"><div><h2>Hipocampo Digital</h2><p>Repositório Universal Ativo</p></div><button type="button" className="btn-logout" onClick={handleLogout}>Sair</button></header>
     <h3 className="section-title">Adicionar Novo Estímulo</h3>
     <div className="grid-container">
       <button type="button" className="card" onClick={() => setModal('materia')}><span className="card-icon">📝</span><span>Matéria<br />Escrita</span></button>
