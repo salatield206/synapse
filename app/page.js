@@ -1,15 +1,19 @@
 'use client';
 
+import { signIn } from 'next-auth/react';
+import { useSession } from 'next-auth/react';
 import { useEffect, useRef, useState } from 'react';
 
 const STORAGE_KEY = 'synapse-materias';
-const AUTH_STORAGE_KEY = 'synapse-autenticado';
 
 export default function Home() {
-  const [autenticado, setAutenticado] = useState(false);
+  const { status } = useSession();
   const [materias, setMaterias] = useState([]);
   const [modal, setModal] = useState(null);
   const [gravando, setGravando] = useState(false);
+  const [email, setEmail] = useState('');
+  const [senha, setSenha] = useState('');
+  const [erroLogin, setErroLogin] = useState('');
   const [form, setForm] = useState({ titulo: '', texto: '', url: '' });
   const gravador = useRef(null);
   const partesAudio = useRef([]);
@@ -18,15 +22,22 @@ export default function Home() {
 
   useEffect(() => {
     try {
-      setAutenticado(localStorage.getItem(AUTH_STORAGE_KEY) === 'true');
       const salvas = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
       if (Array.isArray(salvas)) setMaterias(salvas);
     } catch { setMaterias([]); }
   }, []);
 
-  function acessarHub() {
-    localStorage.setItem(AUTH_STORAGE_KEY, 'true');
-    setAutenticado(true);
+  async function acessarHub(event) {
+    event.preventDefault();
+    setErroLogin('');
+
+    const resultado = await signIn('credentials', {
+      email,
+      password: senha,
+      redirect: false
+    });
+
+    if (!resultado?.ok) setErroLogin('E-mail ou senha inválidos.');
   }
 
   function atualizarMaterias(novas) {
@@ -82,7 +93,9 @@ export default function Home() {
     event.target.value = '';
   }
 
-  if (!autenticado) return <main className="screen login"><div className="logo-container"><div className="logo-s">S</div><h1>SYNAPSE</h1><p>SYNAPSE STUDY SYSTEM</p></div><div className="input-group"><label>E-mail Acadêmico</label><input className="input-real" type="email" placeholder="estudante@universidade.edu.br" /></div><div className="input-group"><label>Senha</label><input className="input-real" type="password" placeholder="••••••••••••" /></div><button type="button" className="btn-primary" onClick={acessarHub}>Acessar o Hub</button></main>;
+  if (status === 'loading') return <main className="screen login" />;
+
+  if (status !== 'authenticated') return <main className="screen login"><form onSubmit={acessarHub}><div className="logo-container"><div className="logo-s">S</div><h1>SYNAPSE</h1><p>SYNAPSE STUDY SYSTEM</p></div><div className="input-group"><label>E-mail Acadêmico</label><input className="input-real" type="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="estudante@universidade.edu.br" required /></div><div className="input-group"><label>Senha</label><input className="input-real" type="password" value={senha} onChange={(event) => setSenha(event.target.value)} placeholder="••••••••••••" required /></div>{erroLogin && <p role="alert">{erroLogin}</p>}<button type="submit" className="btn-primary">Acessar o Hub</button></form></main>;
 
   return <main className="screen dashboard">
     <header className="dash-header"><h2>Hipocampo Digital</h2><p>Repositório Universal Ativo</p></header>
