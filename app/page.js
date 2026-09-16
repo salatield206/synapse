@@ -5,6 +5,33 @@ import { useEffect, useRef, useState } from 'react';
 
 const STORAGE_KEY = 'synapse-materias';
 
+async function comprimirImagem(arquivo) {
+  const imagem = await createImageBitmap(arquivo);
+  const canvas = document.createElement('canvas');
+  const limiteInicial = 1600;
+  let escala = Math.min(1, limiteInicial / Math.max(imagem.width, imagem.height));
+  let blob;
+
+  do {
+    canvas.width = Math.max(1, Math.round(imagem.width * escala));
+    canvas.height = Math.max(1, Math.round(imagem.height * escala));
+    const contexto = canvas.getContext('2d');
+    contexto.drawImage(imagem, 0, 0, canvas.width, canvas.height);
+    blob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/jpeg', 0.7));
+    escala *= 0.8;
+  } while (blob && blob.size > 700 * 1024 && escala > 0.35);
+
+  imagem.close();
+  if (!blob) throw new Error('Não foi possível processar a imagem.');
+
+  return await new Promise((resolve, reject) => {
+    const leitor = new FileReader();
+    leitor.onload = () => resolve(leitor.result);
+    leitor.onerror = () => reject(new Error('Não foi possível ler a imagem comprimida.'));
+    leitor.readAsDataURL(blob);
+  });
+}
+
 export default function Home() {
   const { status } = useSession();
   const [materias, setMaterias] = useState([]);
@@ -13,6 +40,8 @@ export default function Home() {
   const [modal, setModal] = useState(null);
   const [gravando, setGravando] = useState(false);
   const [materiaUpload, setMateriaUpload] = useState('');
+  const [fotoPendente, setFotoPendente] = useState(null);
+  const [salvandoFoto, setSalvandoFoto] = useState(false);
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
   const [isLogin, setIsLogin] = useState(true);
@@ -64,7 +93,7 @@ export default function Home() {
       if (resposta.status === 200 || resposta.status === 201) {
         alert('Conta criada com sucesso!');
         setIsLogin(true);
-        return;
+        return salvo;
       }
 
       throw new Error(dados.message || dados.error || 'Não foi possível criar a conta.');
@@ -118,8 +147,39 @@ export default function Home() {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(atualizadas));
         return atualizadas;
       });
+      return salvo;
     } catch (error) {
       console.error('Erro ao salvar material no banco:', error);
+      return null;
+    }
+  }
+
+  async function salvarFoto(event) {
+    event.preventDefault();
+    if (!fotoPendente) return;
+    setSalvandoFoto(true);
+
+    const novoMaterial = {
+      tipo: 'foto',
+      materia: form.materia.trim() || 'Geral',
+      titulo: form.titulo.trim() || fotoPendente.titulo,
+      imagem: fotoPendente.imagem,
+      criadaEm: new Date().toISOString()
+    };
+
+    try {
+      const salvo = await salvarMaterialNoBanco(novoMaterial);
+      if (!salvo) throw new Error('Não foi possível salvar a foto.');
+      const materialSalvo = { ...novoMaterial, id: salvo.id };
+      atualizarMaterias([materialSalvo, ...materias]);
+      setFotoPendente(null);
+      setForm({ titulo: '', texto: '', url: '', materia: '' });
+      setModal(null);
+      alert('Salvo com sucesso');
+    } catch (error) {
+      alert(error.message || 'Não foi possível salvar a foto.');
+    } finally {
+      setSalvandoFoto(false);
     }
   }
 
@@ -191,9 +251,22 @@ export default function Home() {
     } catch { alert('Não foi possível acessar o microfone. Verifique a permissão do navegador.'); }
   }
 
-  function lerArquivo(event, tipo) {
+  async function lerArquivo(event, tipo) {
     const arquivo = event.target.files?.[0];
     if (!arquivo) return;
+    if (tipo === 'foto') {
+      try {
+        const imagem = await comprimirImagem(arquivo);
+        setFotoPendente({ titulo: arquivo.name, imagem });
+        setForm({ titulo: arquivo.name, texto: '', url: '', materia: materiaUpload });
+        setModal('foto');
+      } catch (error) {
+        alert(error.message || 'Não foi possível processar a foto.');
+      } finally {
+        event.target.value = '';
+      }
+      return;
+    }
     const leitor = new FileReader();
     leitor.onload = () => { const novoMaterial = { tipo, materia: materiaUpload.trim() || 'Geral', titulo: arquivo.name, [tipo === 'foto' ? 'imagem' : 'arquivo']: leitor.result, criadaEm: new Date().toISOString() }; atualizarMaterias([novoMaterial, ...materias]); void salvarMaterialNoBanco(novoMaterial); };
     leitor.readAsDataURL(arquivo);
@@ -224,7 +297,7 @@ export default function Home() {
     </> : <Albumes materias={materias} selecionada={materiaSelecionada} selecionar={setMateriaSelecionada} excluir={excluirMaterial} />}
     <input ref={fotoInput} className="file-input" type="file" accept="image/*" capture="environment" onChange={(event) => lerArquivo(event, 'foto')} />
     <input ref={documentoInput} className="file-input" type="file" accept="application/pdf,.pdf,.doc,.docx" onChange={(event) => lerArquivo(event, 'documento')} />
-    {modal && <Modal tipo={modal} form={form} setForm={setForm} fechar={() => setModal(null)} salvar={modal === 'link' ? salvarLink : salvarMateria} />}
+    {modal && <Modal tipo={modal} form={form} setForm={setForm} fechar={() => { if (!salvandoFoto) { setModal(null); setFotoPendente(null); } }} salvar={modal === 'link' ? salvarLink : modal === 'foto' ? salvarFoto : salvarMateria} foto={fotoPendente} salvando={salvandoFoto} />}
   </main>;
 }
 
@@ -250,6 +323,6 @@ function Albumes({ materias, selecionada, selecionar, excluir }) {
   return <section className="albums-view"><div className="albums-intro"><h3 className="section-title">Minhas Matérias</h3><p>Organize seus estudos por assunto.</p></div>{nomes.length === 0 ? <p className="empty-state">Nenhuma matéria criada ainda.</p> : <div className="albums-grid">{nomes.map((nome) => <button type="button" className="album-card" key={nome} onClick={() => selecionar(nome)}><span className="album-icon">📁</span><strong>{nome}</strong><span>{grupos[nome].length} material(is)</span></button>)}</div>}</section>;
 }
 
-function Modal({ tipo, form, setForm, fechar, salvar }) {
-  return <div className="modal active"><div className="modal-content"><div className="modal-header"><h2>{tipo === 'link' ? 'Salvar link de estudos' : 'Escrever matéria'}</h2><button type="button" className="modal-close" onClick={fechar}>&times;</button></div><form onSubmit={salvar}><div className="input-group"><label>Nome da Matéria</label><input className="input-real" value={form.materia} onChange={(event) => setForm({ ...form, materia: event.target.value })} placeholder="Ex: Matemática, Biologia" required /></div><div className="input-group"><label>Título</label><input className="input-real" value={form.titulo} onChange={(event) => setForm({ ...form, titulo: event.target.value })} required /></div>{tipo === 'link' ? <div className="input-group"><label>Link de estudos</label><input className="input-real" type="url" value={form.url} onChange={(event) => setForm({ ...form, url: event.target.value })} required /></div> : <div className="input-group"><label>Texto</label><textarea className="input-real textarea-real" value={form.texto} onChange={(event) => setForm({ ...form, texto: event.target.value })} required /></div>}<button className="btn-primary" type="submit">Salvar</button></form></div></div>;
+function Modal({ tipo, form, setForm, fechar, salvar, foto, salvando }) {
+  return <div className="modal active"><div className="modal-content"><div className="modal-header"><h2>{tipo === 'link' ? 'Salvar link de estudos' : tipo === 'foto' ? 'Salvar foto' : 'Escrever matéria'}</h2><button type="button" className="modal-close" onClick={fechar} disabled={salvando}>&times;</button></div><form onSubmit={salvar}>{tipo === 'foto' && foto && <img className="foto-preview" src={foto.imagem} alt="Pré-visualização da foto" />}<div className="input-group"><label>Nome da Matéria</label><input className="input-real" value={form.materia} onChange={(event) => setForm({ ...form, materia: event.target.value })} placeholder="Ex: Matemática, Biologia" required /></div><div className="input-group"><label>Título</label><input className="input-real" value={form.titulo} onChange={(event) => setForm({ ...form, titulo: event.target.value })} required /></div>{tipo === 'link' ? <div className="input-group"><label>Link de estudos</label><input className="input-real" type="url" value={form.url} onChange={(event) => setForm({ ...form, url: event.target.value })} required /></div> : tipo !== 'foto' && <div className="input-group"><label>Texto</label><textarea className="input-real textarea-real" value={form.texto} onChange={(event) => setForm({ ...form, texto: event.target.value })} required /></div>}<button className="btn-primary" type="submit" disabled={salvando}>{salvando ? 'Carregando...' : 'Salvar'}</button></form></div></div>;
 }
