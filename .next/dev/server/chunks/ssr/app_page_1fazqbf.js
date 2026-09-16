@@ -25,6 +25,7 @@ function Home() {
     const [nomeCadastro, setNomeCadastro] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])('');
     const [emailCadastro, setEmailCadastro] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])('');
     const [senhaCadastro, setSenhaCadastro] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])('');
+    const [loading, setLoading] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(false);
     const [erroLogin, setErroLogin] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])('');
     const [form, setForm] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])({
         titulo: '',
@@ -55,11 +56,39 @@ function Home() {
     }
     async function handleRegister(event) {
         event.preventDefault();
-        console.log({
-            nome: nomeCadastro,
-            email: emailCadastro,
-            senha: senhaCadastro
-        });
+        setLoading(true);
+        try {
+            const resposta = await fetch('/api/register', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    nome: nomeCadastro,
+                    email: emailCadastro,
+                    senha: senhaCadastro
+                })
+            });
+            const corpo = await resposta.text();
+            let dados = {};
+            try {
+                dados = corpo ? JSON.parse(corpo) : {};
+            } catch  {
+                dados = {
+                    message: corpo
+                };
+            }
+            if (resposta.status === 200 || resposta.status === 201) {
+                alert('Conta criada com sucesso!');
+                setIsLogin(true);
+                return;
+            }
+            throw new Error(dados.message || dados.error || 'Não foi possível criar a conta.');
+        } catch (error) {
+            alert(error.message || 'Ocorreu um erro ao criar a conta.');
+        } finally{
+            setLoading(false);
+        }
     }
     async function handleLogout() {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(materias));
@@ -169,7 +198,7 @@ function Home() {
         className: "screen login"
     }, void 0, false, {
         fileName: "[project]/app/page.js",
-        lineNumber: 109,
+        lineNumber: 133,
         columnNumber: 36
     }, this);
     if (status !== 'authenticated') return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("main", {
@@ -183,27 +212,27 @@ function Home() {
                         children: "S"
                     }, void 0, false, {
                         fileName: "[project]/app/page.js",
-                        lineNumber: 111,
+                        lineNumber: 135,
                         columnNumber: 105
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("h1", {
                         children: "SYNAPSE"
                     }, void 0, false, {
                         fileName: "[project]/app/page.js",
-                        lineNumber: 111,
+                        lineNumber: 135,
                         columnNumber: 136
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
                         children: "SYNAPSE STUDY SYSTEM"
                     }, void 0, false, {
                         fileName: "[project]/app/page.js",
-                        lineNumber: 111,
+                        lineNumber: 135,
                         columnNumber: 152
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/app/page.js",
-                lineNumber: 111,
+                lineNumber: 135,
                 columnNumber: 73
             }, this),
             isLogin ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("form", {
@@ -216,7 +245,7 @@ function Home() {
                                 children: "E-mail Acadêmico"
                             }, void 0, false, {
                                 fileName: "[project]/app/page.js",
-                                lineNumber: 111,
+                                lineNumber: 135,
                                 columnNumber: 253
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
@@ -228,13 +257,13 @@ function Home() {
                                 required: true
                             }, void 0, false, {
                                 fileName: "[project]/app/page.js",
-                                lineNumber: 111,
+                                lineNumber: 135,
                                 columnNumber: 284
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/app/page.js",
-                        lineNumber: 111,
+                        lineNumber: 135,
                         columnNumber: 224
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -244,7 +273,7 @@ function Home() {
                                 children: "Senha"
                             }, void 0, false, {
                                 fileName: "[project]/app/page.js",
-                                lineNumber: 111,
+                                lineNumber: 135,
                                 columnNumber: 482
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
@@ -256,13 +285,13 @@ function Home() {
                                 required: true
                             }, void 0, false, {
                                 fileName: "[project]/app/page.js",
-                                lineNumber: 111,
+                                lineNumber: 135,
                                 columnNumber: 502
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/app/page.js",
-                        lineNumber: 111,
+                        lineNumber: 135,
                         columnNumber: 453
                     }, this),
                     erroLogin && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -270,7 +299,7 @@ function Home() {
                         children: erroLogin
                     }, void 0, false, {
                         fileName: "[project]/app/page.js",
-                        lineNumber: 111,
+                        lineNumber: 135,
                         columnNumber: 671
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -279,7 +308,7 @@ function Home() {
                         children: "Entrar"
                     }, void 0, false, {
                         fileName: "[project]/app/page.js",
-                        lineNumber: 111,
+                        lineNumber: 135,
                         columnNumber: 703
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -289,13 +318,13 @@ function Home() {
                         children: "Não tem uma conta? Cadastre-se"
                     }, void 0, false, {
                         fileName: "[project]/app/page.js",
-                        lineNumber: 111,
+                        lineNumber: 135,
                         columnNumber: 764
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/app/page.js",
-                lineNumber: 111,
+                lineNumber: 135,
                 columnNumber: 196
             }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("form", {
                 onSubmit: handleRegister,
@@ -307,7 +336,7 @@ function Home() {
                                 children: "Nome"
                             }, void 0, false, {
                                 fileName: "[project]/app/page.js",
-                                lineNumber: 111,
+                                lineNumber: 135,
                                 columnNumber: 954
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
@@ -318,13 +347,13 @@ function Home() {
                                 required: true
                             }, void 0, false, {
                                 fileName: "[project]/app/page.js",
-                                lineNumber: 111,
+                                lineNumber: 135,
                                 columnNumber: 973
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/app/page.js",
-                        lineNumber: 111,
+                        lineNumber: 135,
                         columnNumber: 925
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -334,7 +363,7 @@ function Home() {
                                 children: "E-mail"
                             }, void 0, false, {
                                 fileName: "[project]/app/page.js",
-                                lineNumber: 111,
+                                lineNumber: 135,
                                 columnNumber: 1140
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
@@ -345,13 +374,13 @@ function Home() {
                                 required: true
                             }, void 0, false, {
                                 fileName: "[project]/app/page.js",
-                                lineNumber: 111,
+                                lineNumber: 135,
                                 columnNumber: 1161
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/app/page.js",
-                        lineNumber: 111,
+                        lineNumber: 135,
                         columnNumber: 1111
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -361,7 +390,7 @@ function Home() {
                                 children: "Senha"
                             }, void 0, false, {
                                 fileName: "[project]/app/page.js",
-                                lineNumber: 111,
+                                lineNumber: 135,
                                 columnNumber: 1331
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
@@ -372,22 +401,23 @@ function Home() {
                                 required: true
                             }, void 0, false, {
                                 fileName: "[project]/app/page.js",
-                                lineNumber: 111,
+                                lineNumber: 135,
                                 columnNumber: 1351
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/app/page.js",
-                        lineNumber: 111,
+                        lineNumber: 135,
                         columnNumber: 1302
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
                         type: "submit",
                         className: "btn-primary",
-                        children: "Registrar"
+                        disabled: loading,
+                        children: loading ? 'Criando conta...' : 'Registrar'
                     }, void 0, false, {
                         fileName: "[project]/app/page.js",
-                        lineNumber: 111,
+                        lineNumber: 135,
                         columnNumber: 1495
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -397,19 +427,19 @@ function Home() {
                         children: "Já tem uma conta? Faça login"
                     }, void 0, false, {
                         fileName: "[project]/app/page.js",
-                        lineNumber: 111,
-                        columnNumber: 1559
+                        lineNumber: 135,
+                        columnNumber: 1613
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/app/page.js",
-                lineNumber: 111,
+                lineNumber: 135,
                 columnNumber: 893
             }, this)
         ]
     }, void 0, true, {
         fileName: "[project]/app/page.js",
-        lineNumber: 111,
+        lineNumber: 135,
         columnNumber: 42
     }, this);
     return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("main", {
@@ -424,20 +454,20 @@ function Home() {
                                 children: "Hipocampo Digital"
                             }, void 0, false, {
                                 fileName: "[project]/app/page.js",
-                                lineNumber: 114,
+                                lineNumber: 138,
                                 columnNumber: 42
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
                                 children: "Repositório Universal Ativo"
                             }, void 0, false, {
                                 fileName: "[project]/app/page.js",
-                                lineNumber: 114,
+                                lineNumber: 138,
                                 columnNumber: 68
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/app/page.js",
-                        lineNumber: 114,
+                        lineNumber: 138,
                         columnNumber: 37
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -447,13 +477,13 @@ function Home() {
                         children: "Sair"
                     }, void 0, false, {
                         fileName: "[project]/app/page.js",
-                        lineNumber: 114,
+                        lineNumber: 138,
                         columnNumber: 108
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/app/page.js",
-                lineNumber: 114,
+                lineNumber: 138,
                 columnNumber: 5
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("h3", {
@@ -461,7 +491,7 @@ function Home() {
                 children: "Adicionar Novo Estímulo"
             }, void 0, false, {
                 fileName: "[project]/app/page.js",
-                lineNumber: 115,
+                lineNumber: 139,
                 columnNumber: 5
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -477,7 +507,7 @@ function Home() {
                                 children: "📝"
                             }, void 0, false, {
                                 fileName: "[project]/app/page.js",
-                                lineNumber: 117,
+                                lineNumber: 141,
                                 columnNumber: 82
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -485,20 +515,20 @@ function Home() {
                                     "Matéria",
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("br", {}, void 0, false, {
                                         fileName: "[project]/app/page.js",
-                                        lineNumber: 117,
+                                        lineNumber: 141,
                                         columnNumber: 132
                                     }, this),
                                     "Escrita"
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/app/page.js",
-                                lineNumber: 117,
+                                lineNumber: 141,
                                 columnNumber: 119
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/app/page.js",
-                        lineNumber: 117,
+                        lineNumber: 141,
                         columnNumber: 7
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -511,7 +541,7 @@ function Home() {
                                 children: "📷"
                             }, void 0, false, {
                                 fileName: "[project]/app/page.js",
-                                lineNumber: 118,
+                                lineNumber: 142,
                                 columnNumber: 88
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -519,20 +549,20 @@ function Home() {
                                     "Matéria",
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("br", {}, void 0, false, {
                                         fileName: "[project]/app/page.js",
-                                        lineNumber: 118,
+                                        lineNumber: 142,
                                         columnNumber: 138
                                     }, this),
                                     "por Foto"
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/app/page.js",
-                                lineNumber: 118,
+                                lineNumber: 142,
                                 columnNumber: 125
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/app/page.js",
-                        lineNumber: 118,
+                        lineNumber: 142,
                         columnNumber: 7
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -545,7 +575,7 @@ function Home() {
                                 children: "🎧"
                             }, void 0, false, {
                                 fileName: "[project]/app/page.js",
-                                lineNumber: 119,
+                                lineNumber: 143,
                                 columnNumber: 105
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -554,39 +584,39 @@ function Home() {
                                         "Parar",
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("br", {}, void 0, false, {
                                             fileName: "[project]/app/page.js",
-                                            lineNumber: 119,
+                                            lineNumber: 143,
                                             columnNumber: 167
                                         }, this),
                                         "gravação"
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/app/page.js",
-                                    lineNumber: 119,
+                                    lineNumber: 143,
                                     columnNumber: 160
                                 }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Fragment"], {
                                     children: [
                                         "Matéria",
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("br", {}, void 0, false, {
                                             fileName: "[project]/app/page.js",
-                                            lineNumber: 119,
+                                            lineNumber: 143,
                                             columnNumber: 196
                                         }, this),
                                         "por Áudio"
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/app/page.js",
-                                    lineNumber: 119,
+                                    lineNumber: 143,
                                     columnNumber: 187
                                 }, this)
                             }, void 0, false, {
                                 fileName: "[project]/app/page.js",
-                                lineNumber: 119,
+                                lineNumber: 143,
                                 columnNumber: 142
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/app/page.js",
-                        lineNumber: 119,
+                        lineNumber: 143,
                         columnNumber: 7
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -599,7 +629,7 @@ function Home() {
                                 children: "🔗"
                             }, void 0, false, {
                                 fileName: "[project]/app/page.js",
-                                lineNumber: 120,
+                                lineNumber: 144,
                                 columnNumber: 71
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -607,20 +637,20 @@ function Home() {
                                     "Matéria",
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("br", {}, void 0, false, {
                                         fileName: "[project]/app/page.js",
-                                        lineNumber: 120,
+                                        lineNumber: 144,
                                         columnNumber: 121
                                     }, this),
                                     "de Link"
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/app/page.js",
-                                lineNumber: 120,
+                                lineNumber: 144,
                                 columnNumber: 108
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/app/page.js",
-                        lineNumber: 120,
+                        lineNumber: 144,
                         columnNumber: 7
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -633,26 +663,26 @@ function Home() {
                                 children: "📄"
                             }, void 0, false, {
                                 fileName: "[project]/app/page.js",
-                                lineNumber: 121,
+                                lineNumber: 145,
                                 columnNumber: 104
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
                                 children: "Matéria por Documento (PDF, Doc)"
                             }, void 0, false, {
                                 fileName: "[project]/app/page.js",
-                                lineNumber: 121,
+                                lineNumber: 145,
                                 columnNumber: 141
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/app/page.js",
-                        lineNumber: 121,
+                        lineNumber: 145,
                         columnNumber: 7
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/app/page.js",
-                lineNumber: 116,
+                lineNumber: 140,
                 columnNumber: 5
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("h3", {
@@ -660,14 +690,14 @@ function Home() {
                 children: "Revisão Recente"
             }, void 0, false, {
                 fileName: "[project]/app/page.js",
-                lineNumber: 123,
+                lineNumber: 147,
                 columnNumber: 5
             }, this),
             materias.map((materia, index)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(Materia, {
                     materia: materia
                 }, `${materia.criadaEm}-${index}`, false, {
                     fileName: "[project]/app/page.js",
-                    lineNumber: 124,
+                    lineNumber: 148,
                     columnNumber: 39
                 }, this)),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
@@ -679,7 +709,7 @@ function Home() {
                 onChange: (event)=>lerArquivo(event, 'foto')
             }, void 0, false, {
                 fileName: "[project]/app/page.js",
-                lineNumber: 125,
+                lineNumber: 149,
                 columnNumber: 5
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
@@ -690,7 +720,7 @@ function Home() {
                 onChange: (event)=>lerArquivo(event, 'documento')
             }, void 0, false, {
                 fileName: "[project]/app/page.js",
-                lineNumber: 126,
+                lineNumber: 150,
                 columnNumber: 5
             }, this),
             modal && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(Modal, {
@@ -701,13 +731,13 @@ function Home() {
                 salvar: modal === 'link' ? salvarLink : salvarMateria
             }, void 0, false, {
                 fileName: "[project]/app/page.js",
-                lineNumber: 127,
+                lineNumber: 151,
                 columnNumber: 15
             }, this)
         ]
     }, void 0, true, {
         fileName: "[project]/app/page.js",
-        lineNumber: 113,
+        lineNumber: 137,
         columnNumber: 10
     }, this);
 }
@@ -727,7 +757,7 @@ function Materia({ materia }) {
                 children: materia.titulo
             }, void 0, false, {
                 fileName: "[project]/app/page.js",
-                lineNumber: 133,
+                lineNumber: 157,
                 columnNumber: 52
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -742,7 +772,7 @@ function Materia({ materia }) {
                 ]
             }, void 0, true, {
                 fileName: "[project]/app/page.js",
-                lineNumber: 133,
+                lineNumber: 157,
                 columnNumber: 100
             }, this),
             materia.tipo === 'foto' && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("img", {
@@ -751,7 +781,7 @@ function Materia({ materia }) {
                 alt: materia.titulo
             }, void 0, false, {
                 fileName: "[project]/app/page.js",
-                lineNumber: 133,
+                lineNumber: 157,
                 columnNumber: 286
             }, this),
             materia.tipo === 'audio' && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("audio", {
@@ -760,7 +790,7 @@ function Materia({ materia }) {
                 src: materia.audio
             }, void 0, false, {
                 fileName: "[project]/app/page.js",
-                lineNumber: 133,
+                lineNumber: 157,
                 columnNumber: 390
             }, this),
             materia.tipo === 'link' && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("a", {
@@ -771,7 +801,7 @@ function Materia({ materia }) {
                 children: "Abrir material de estudos"
             }, void 0, false, {
                 fileName: "[project]/app/page.js",
-                lineNumber: 133,
+                lineNumber: 157,
                 columnNumber: 483
             }, this),
             materia.tipo === 'documento' && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("a", {
@@ -782,7 +812,7 @@ function Materia({ materia }) {
                 children: "Abrir documento"
             }, void 0, false, {
                 fileName: "[project]/app/page.js",
-                lineNumber: 133,
+                lineNumber: 157,
                 columnNumber: 624
             }, this),
             materia.tipo === 'escrito' && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -790,13 +820,13 @@ function Materia({ materia }) {
                 children: materia.texto
             }, void 0, false, {
                 fileName: "[project]/app/page.js",
-                lineNumber: 133,
+                lineNumber: 157,
                 columnNumber: 757
             }, this)
         ]
     }, void 0, true, {
         fileName: "[project]/app/page.js",
-        lineNumber: 133,
+        lineNumber: 157,
         columnNumber: 10
     }, this);
 }
@@ -813,7 +843,7 @@ function Modal({ tipo, form, setForm, fechar, salvar }) {
                             children: tipo === 'link' ? 'Salvar link de estudos' : 'Escrever matéria'
                         }, void 0, false, {
                             fileName: "[project]/app/page.js",
-                            lineNumber: 137,
+                            lineNumber: 161,
                             columnNumber: 101
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -823,13 +853,13 @@ function Modal({ tipo, form, setForm, fechar, salvar }) {
                             children: "×"
                         }, void 0, false, {
                             fileName: "[project]/app/page.js",
-                            lineNumber: 137,
+                            lineNumber: 161,
                             columnNumber: 175
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/app/page.js",
-                    lineNumber: 137,
+                    lineNumber: 161,
                     columnNumber: 71
                 }, this),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("form", {
@@ -842,7 +872,7 @@ function Modal({ tipo, form, setForm, fechar, salvar }) {
                                     children: "Título"
                                 }, void 0, false, {
                                     fileName: "[project]/app/page.js",
-                                    lineNumber: 137,
+                                    lineNumber: 161,
                                     columnNumber: 313
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
@@ -855,13 +885,13 @@ function Modal({ tipo, form, setForm, fechar, salvar }) {
                                     required: true
                                 }, void 0, false, {
                                     fileName: "[project]/app/page.js",
-                                    lineNumber: 137,
+                                    lineNumber: 161,
                                     columnNumber: 334
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/app/page.js",
-                            lineNumber: 137,
+                            lineNumber: 161,
                             columnNumber: 284
                         }, this),
                         tipo === 'link' ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -871,7 +901,7 @@ function Modal({ tipo, form, setForm, fechar, salvar }) {
                                     children: "Link de estudos"
                                 }, void 0, false, {
                                     fileName: "[project]/app/page.js",
-                                    lineNumber: 137,
+                                    lineNumber: 161,
                                     columnNumber: 520
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
@@ -885,13 +915,13 @@ function Modal({ tipo, form, setForm, fechar, salvar }) {
                                     required: true
                                 }, void 0, false, {
                                     fileName: "[project]/app/page.js",
-                                    lineNumber: 137,
+                                    lineNumber: 161,
                                     columnNumber: 550
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/app/page.js",
-                            lineNumber: 137,
+                            lineNumber: 161,
                             columnNumber: 491
                         }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                             className: "input-group",
@@ -900,7 +930,7 @@ function Modal({ tipo, form, setForm, fechar, salvar }) {
                                     children: "Texto"
                                 }, void 0, false, {
                                     fileName: "[project]/app/page.js",
-                                    lineNumber: 137,
+                                    lineNumber: 161,
                                     columnNumber: 725
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("textarea", {
@@ -913,13 +943,13 @@ function Modal({ tipo, form, setForm, fechar, salvar }) {
                                     required: true
                                 }, void 0, false, {
                                     fileName: "[project]/app/page.js",
-                                    lineNumber: 137,
+                                    lineNumber: 161,
                                     columnNumber: 745
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/app/page.js",
-                            lineNumber: 137,
+                            lineNumber: 161,
                             columnNumber: 696
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -928,24 +958,24 @@ function Modal({ tipo, form, setForm, fechar, salvar }) {
                             children: "Salvar"
                         }, void 0, false, {
                             fileName: "[project]/app/page.js",
-                            lineNumber: 137,
+                            lineNumber: 161,
                             columnNumber: 899
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/app/page.js",
-                    lineNumber: 137,
+                    lineNumber: 161,
                     columnNumber: 260
                 }, this)
             ]
         }, void 0, true, {
             fileName: "[project]/app/page.js",
-            lineNumber: 137,
+            lineNumber: 161,
             columnNumber: 40
         }, this)
     }, void 0, false, {
         fileName: "[project]/app/page.js",
-        lineNumber: 137,
+        lineNumber: 161,
         columnNumber: 10
     }, this);
 }
