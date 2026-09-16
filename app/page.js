@@ -12,6 +12,10 @@ export default function Home() {
   const [gravando, setGravando] = useState(false);
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
+  const [isLogin, setIsLogin] = useState(true);
+  const [nomeCadastro, setNomeCadastro] = useState('');
+  const [emailCadastro, setEmailCadastro] = useState('');
+  const [senhaCadastro, setSenhaCadastro] = useState('');
   const [erroLogin, setErroLogin] = useState('');
   const [form, setForm] = useState({ titulo: '', texto: '', url: '' });
   const gravador = useRef(null);
@@ -37,6 +41,11 @@ export default function Home() {
     });
 
     if (!resultado?.ok) setErroLogin('E-mail ou senha inválidos.');
+  }
+
+  async function handleRegister(event) {
+    event.preventDefault();
+    console.log({ nome: nomeCadastro, email: emailCadastro, senha: senhaCadastro });
   }
 
   async function handleLogout() {
@@ -99,7 +108,7 @@ export default function Home() {
 
   if (status === 'loading') return <main className="screen login" />;
 
-  if (status !== 'authenticated') return <main className="screen login"><form onSubmit={acessarHub}><div className="logo-container"><div className="logo-s">S</div><h1>SYNAPSE</h1><p>SYNAPSE STUDY SYSTEM</p></div><div className="input-group"><label>E-mail Acadêmico</label><input className="input-real" type="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="estudante@universidade.edu.br" required /></div><div className="input-group"><label>Senha</label><input className="input-real" type="password" value={senha} onChange={(event) => setSenha(event.target.value)} placeholder="••••••••••••" required /></div>{erroLogin && <p role="alert">{erroLogin}</p>}<button type="submit" className="btn-primary">Entrar</button></form></main>;
+  if (status !== 'authenticated') return <main className="screen login"><div className="logo-container"><div className="logo-s">S</div><h1>SYNAPSE</h1><p>SYNAPSE STUDY SYSTEM</p></div>{isLogin ? <form onSubmit={acessarHub}><div className="input-group"><label>E-mail Acadêmico</label><input className="input-real" type="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="estudante@universidade.edu.br" required /></div><div className="input-group"><label>Senha</label><input className="input-real" type="password" value={senha} onChange={(event) => setSenha(event.target.value)} placeholder="••••••••••••" required /></div>{erroLogin && <p role="alert">{erroLogin}</p>}<button type="submit" className="btn-primary">Entrar</button><button type="button" className="auth-toggle" onClick={() => setIsLogin(false)}>Não tem uma conta? Cadastre-se</button></form> : <form onSubmit={handleRegister}><div className="input-group"><label>Nome</label><input className="input-real" type="text" value={nomeCadastro} onChange={(event) => setNomeCadastro(event.target.value)} required /></div><div className="input-group"><label>E-mail</label><input className="input-real" type="email" value={emailCadastro} onChange={(event) => setEmailCadastro(event.target.value)} required /></div><div className="input-group"><label>Senha</label><input className="input-real" type="password" value={senhaCadastro} onChange={(event) => setSenhaCadastro(event.target.value)} required /></div><button type="submit" className="btn-primary">Registrar</button><button type="button" className="auth-toggle" onClick={() => setIsLogin(true)}>Já tem uma conta? Faça login</button></form>}</main>;
 
   return <main className="screen dashboard">
     <header className="dash-header"><div><h2>Hipocampo Digital</h2><p>Repositório Universal Ativo</p></div><button type="button" className="btn-logout" onClick={handleLogout}>Sair</button></header>
