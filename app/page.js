@@ -12,6 +12,7 @@ export default function Home() {
   const [materiaSelecionada, setMateriaSelecionada] = useState(null);
   const [modal, setModal] = useState(null);
   const [gravando, setGravando] = useState(false);
+  const [materiaUpload, setMateriaUpload] = useState('');
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
   const [isLogin, setIsLogin] = useState(true);
@@ -135,7 +136,7 @@ export default function Home() {
       gravador.current.ondataavailable = (event) => { if (event.data.size) partesAudio.current.push(event.data); };
       gravador.current.onstop = () => {
         const leitor = new FileReader();
-        leitor.onloadend = () => { const novoMaterial = { tipo: 'audio', materia: 'Sem matéria', titulo: 'Nova matéria em áudio', audio: leitor.result, criadaEm: new Date().toISOString() }; atualizarMaterias([novoMaterial, ...materias]); void salvarMaterialNoBanco(novoMaterial); };
+        leitor.onloadend = () => { const novoMaterial = { tipo: 'audio', materia: materiaUpload.trim() || 'Geral', titulo: 'Nova matéria em áudio', audio: leitor.result, criadaEm: new Date().toISOString() }; atualizarMaterias([novoMaterial, ...materias]); void salvarMaterialNoBanco(novoMaterial); };
         leitor.readAsDataURL(new Blob(partesAudio.current, { type: gravador.current.mimeType || 'audio/webm' }));
         stream.getTracks().forEach((track) => track.stop());
         setGravando(false);
@@ -149,7 +150,7 @@ export default function Home() {
     const arquivo = event.target.files?.[0];
     if (!arquivo) return;
     const leitor = new FileReader();
-    leitor.onload = () => { const novoMaterial = { tipo, materia: 'Sem matéria', titulo: arquivo.name, [tipo === 'foto' ? 'imagem' : 'arquivo']: leitor.result, criadaEm: new Date().toISOString() }; atualizarMaterias([novoMaterial, ...materias]); void salvarMaterialNoBanco(novoMaterial); };
+    leitor.onload = () => { const novoMaterial = { tipo, materia: materiaUpload.trim() || 'Geral', titulo: arquivo.name, [tipo === 'foto' ? 'imagem' : 'arquivo']: leitor.result, criadaEm: new Date().toISOString() }; atualizarMaterias([novoMaterial, ...materias]); void salvarMaterialNoBanco(novoMaterial); };
     leitor.readAsDataURL(arquivo);
     event.target.value = '';
   }
@@ -158,11 +159,14 @@ export default function Home() {
 
   if (status !== 'authenticated') return <main className="screen login"><div className="logo-container"><div className="logo-s">S</div><h1>SYNAPSE</h1><p>SYNAPSE STUDY SYSTEM</p></div>{isLogin ? <form onSubmit={acessarHub}><div className="input-group"><label>E-mail Acadêmico</label><input className="input-real" type="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="estudante@universidade.edu.br" required /></div><div className="input-group"><label>Senha</label><input className="input-real" type="password" value={senha} onChange={(event) => setSenha(event.target.value)} placeholder="••••••••••••" required /></div>{erroLogin && <p role="alert">{erroLogin}</p>}<button type="submit" className="btn-primary">Entrar</button><button type="button" className="auth-toggle" onClick={() => setIsLogin(false)}>Não tem uma conta? Cadastre-se</button></form> : <form onSubmit={handleRegister}><div className="input-group"><label>Nome</label><input className="input-real" type="text" value={nomeCadastro} onChange={(event) => setNomeCadastro(event.target.value)} required /></div><div className="input-group"><label>E-mail</label><input className="input-real" type="email" value={emailCadastro} onChange={(event) => setEmailCadastro(event.target.value)} required /></div><div className="input-group"><label>Senha</label><input className="input-real" type="password" value={senhaCadastro} onChange={(event) => setSenhaCadastro(event.target.value)} required /></div><button type="submit" className="btn-primary" disabled={loading}>{loading ? 'Criando conta...' : 'Registrar'}</button><button type="button" className="auth-toggle" onClick={() => setIsLogin(true)}>Já tem uma conta? Faça login</button></form>}</main>;
 
+  const nomesMaterias = [...new Set(materias.map((material) => material.materia).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'pt-BR'));
+
   return <main className="screen dashboard">
     <header className="dash-header"><div><h2>Hipocampo Digital</h2><p>Repositório Universal Ativo</p></div><button type="button" className="btn-logout" onClick={handleLogout}>Sair</button></header>
     <nav className="dashboard-tabs" aria-label="Navegação do repositório"><button type="button" className={aba === 'recentes' ? 'tab-active' : ''} onClick={() => { setAba('recentes'); setMateriaSelecionada(null); }}>Recentes</button><button type="button" className={aba === 'materias' ? 'tab-active' : ''} onClick={() => { setAba('materias'); setMateriaSelecionada(null); }}>Minhas Matérias</button></nav>
     {aba === 'recentes' ? <>
     <h3 className="section-title">Adicionar Novo Estímulo</h3>
+    <div className="upload-subject"><label htmlFor="materia-upload">Nome da Matéria</label><input id="materia-upload" className="input-real" type="text" value={materiaUpload} onChange={(event) => setMateriaUpload(event.target.value)} list="materias-existentes" placeholder="Ex: Matemática, Biologia" /><datalist id="materias-existentes">{nomesMaterias.map((nome) => <option value={nome} key={nome} />)}</datalist><p>Essa matéria será usada nos uploads de foto, áudio e documento.</p></div>
     <div className="grid-container">
       <button type="button" className="card" onClick={() => setModal('materia')}><span className="card-icon">📝</span><span>Matéria<br />Escrita</span></button>
       <button type="button" className="card" onClick={() => fotoInput.current.click()}><span className="card-icon">📷</span><span>Matéria<br />por Foto</span></button>

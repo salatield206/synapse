@@ -10,11 +10,11 @@ export async function POST(request) {
 
   try {
     const { materia, tipo, titulo, conteudo } = await request.json();
-    const materiaNormalizada = materia?.trim();
+    const materiaNormalizada = materia?.trim() || 'Geral';
     const tituloNormalizado = titulo?.trim();
 
-    if (!materiaNormalizada || !tipo || !tituloNormalizado) {
-      return Response.json({ message: 'Matéria, tipo e título são obrigatórios.' }, { status: 400 });
+    if (!tipo || !tituloNormalizado) {
+      return Response.json({ message: 'Tipo e título são obrigatórios.' }, { status: 400 });
     }
 
     const sql = getDb();
