@@ -83,8 +83,11 @@ export default function Home() {
       return;
     }
 
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(materias));
-    await signOut({ callbackUrl: '/' });
+    try {
+      await signOut({ callbackUrl: '/' });
+    } catch (error) {
+      console.error('Não foi possível encerrar a sessão:', error);
+    }
   }
 
   function atualizarMaterias(novas) {
