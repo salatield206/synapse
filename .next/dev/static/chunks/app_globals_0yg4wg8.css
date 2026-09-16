@@ -1,4 +1,29 @@
 /* [project]/app/globals.css [app-client] (css) */
+.btn-logout {
+  color: #fff;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  cursor: pointer;
+  background: #2a0048;
+  border: 1px solid #a90072;
+  border-radius: 8px;
+  padding: 10px 18px;
+  font-size: 12px;
+  font-weight: bold;
+  transition: background .2s, border-color .2s, transform .2s;
+}
+
+.btn-logout:hover {
+  background: purple;
+  border-color: #d12a9b;
+  transform: translateY(-1px);
+}
+
+.btn-logout:focus-visible {
+  outline-offset: 3px;
+  outline: 2px solid #d12a9b;
+}
+
 * {
   box-sizing: border-box;
   margin: 0;

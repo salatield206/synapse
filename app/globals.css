@@ -1,3 +1,6 @@
+ .btn-logout { background: #2a0048; border: 1px solid #a90072; border-radius: 8px; color: #fff; padding: 10px 18px; font-size: 12px; font-weight: bold; letter-spacing: 1px; text-transform: uppercase; cursor: pointer; transition: background .2s ease, border-color .2s ease, transform .2s ease; }
+.btn-logout:hover { background: #800080; border-color: #d12a9b; transform: translateY(-1px); }
+.btn-logout:focus-visible { outline: 2px solid #d12a9b; outline-offset: 3px; }
 * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; }
 body { background: #1a0029; color: #fff; overflow-x: hidden; }
 .screen { min-height: 100vh; padding: 30px 25px; animation: fadeIn .4s ease-out; }
