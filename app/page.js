@@ -125,6 +125,7 @@ export default function Home() {
 
       const resposta = await fetch('/api/materials', {
         method: 'POST',
+        credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           materia: material.materia,
