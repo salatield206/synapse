@@ -107,10 +107,45 @@ export default function Home() {
           conteudo: material.texto || material.url || material.arquivo || material.imagem || material.audio
         })
       });
-      if (!resposta.ok) console.error('Não foi possível salvar o material no banco.');
+      if (!resposta.ok) {
+        console.error('Não foi possível salvar o material no banco.');
+        return;
+      }
+
+      const salvo = await resposta.json();
+      setMaterias((atuais) => {
+        const atualizadas = atuais.map((item) => item.criadaEm === material.criadaEm ? { ...item, id: salvo.id } : item);
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(atualizadas));
+        return atualizadas;
+      });
     } catch (error) {
       console.error('Erro ao salvar material no banco:', error);
     }
+  }
+
+  async function excluirMaterial(material) {
+    if (!window.confirm('Tem certeza que deseja excluir este material permanentemente?')) return;
+
+    if (material.id) {
+      try {
+        const resposta = await fetch(`/api/materials/${material.id}`, { method: 'DELETE' });
+        if (!resposta.ok) {
+          const dados = await resposta.json().catch(() => ({}));
+          alert(dados.message || 'Não foi possível excluir o material.');
+          return;
+        }
+      } catch (error) {
+        console.error('Erro ao excluir material:', error);
+        alert('Não foi possível excluir o material.');
+        return;
+      }
+    }
+
+    setMaterias((atuais) => {
+      const atualizadas = atuais.filter((item) => item !== material && (!material.id || item.id !== material.id));
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(atualizadas));
+      return atualizadas;
+    });
   }
 
   function salvarMateria(event) {
@@ -185,20 +220,20 @@ export default function Home() {
       <button type="button" className="card full-width" onClick={() => documentoInput.current.click()}><span className="card-icon">📄</span><span>Matéria por Documento (PDF, Doc)</span></button>
     </div>
     <h3 className="section-title">Revisão Recente</h3>
-    {materias.map((materia, index) => <Materia key={`${materia.criadaEm}-${index}`} materia={materia} />)}
-    </> : <Albumes materias={materias} selecionada={materiaSelecionada} selecionar={setMateriaSelecionada} />}
+    {materias.map((materia, index) => <Materia key={`${materia.criadaEm}-${index}`} materia={materia} excluir={excluirMaterial} />)}
+    </> : <Albumes materias={materias} selecionada={materiaSelecionada} selecionar={setMateriaSelecionada} excluir={excluirMaterial} />}
     <input ref={fotoInput} className="file-input" type="file" accept="image/*" capture="environment" onChange={(event) => lerArquivo(event, 'foto')} />
     <input ref={documentoInput} className="file-input" type="file" accept="application/pdf,.pdf,.doc,.docx" onChange={(event) => lerArquivo(event, 'documento')} />
     {modal && <Modal tipo={modal} form={form} setForm={setForm} fechar={() => setModal(null)} salvar={modal === 'link' ? salvarLink : salvarMateria} />}
   </main>;
 }
 
-function Materia({ materia }) {
+function Materia({ materia, excluir }) {
   const descricao = { foto: 'Matéria por foto', audio: 'Matéria por áudio', link: 'Link de estudos', documento: 'Documento', escrito: 'Matéria escrita' }[materia.tipo];
-  return <article className="list-item saved-item"><div className="li-title">{materia.titulo}</div><div className="li-desc">{materia.materia || 'Sem matéria'} • {descricao} • {new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short', timeStyle: 'short' }).format(new Date(materia.criadaEm))}</div>{materia.tipo === 'foto' && <img className="materia-foto" src={materia.imagem} alt={materia.titulo} />}{materia.tipo === 'audio' && <audio className="materia-audio" controls src={materia.audio} />}{materia.tipo === 'link' && <a className="materia-link" href={materia.url}>Abrir material de estudos</a>}{materia.tipo === 'documento' && <a className="materia-link" href={materia.arquivo} download={materia.titulo}>Baixar documento</a>}{materia.tipo === 'escrito' && <div className="li-content">{materia.texto}</div>}</article>;
+  return <article className="list-item saved-item"><div className="material-heading"><div><div className="li-title">{materia.titulo}</div><div className="li-desc">{materia.materia || 'Sem matéria'} • {descricao} • {new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short', timeStyle: 'short' }).format(new Date(materia.criadaEm))}</div></div><button type="button" className="delete-material" onClick={() => excluir(materia)} aria-label={`Excluir ${materia.titulo}`} title="Excluir material">🗑️</button></div>{materia.tipo === 'foto' && <img className="materia-foto" src={materia.imagem} alt={materia.titulo} />}{materia.tipo === 'audio' && <audio className="materia-audio" controls src={materia.audio} />}{materia.tipo === 'link' && <a className="materia-link" href={materia.url}>Abrir material de estudos</a>}{materia.tipo === 'documento' && <a className="materia-link" href={materia.arquivo} download={materia.titulo}>Baixar documento</a>}{materia.tipo === 'escrito' && <div className="li-content">{materia.texto}</div>}</article>;
 }
 
-function Albumes({ materias, selecionada, selecionar }) {
+function Albumes({ materias, selecionada, selecionar, excluir }) {
   const grupos = materias.reduce((acumulado, material) => {
     const nome = material.materia?.trim() || 'Sem matéria';
     if (!acumulado[nome]) acumulado[nome] = [];
@@ -208,7 +243,7 @@ function Albumes({ materias, selecionada, selecionar }) {
 
   if (selecionada) {
     const materiais = grupos[selecionada] || [];
-    return <section className="albums-view"><button type="button" className="back-link" onClick={() => selecionar(null)}>Voltar para Minhas Matérias</button><div className="albums-heading"><span className="album-large-icon">📁</span><div><h3>{selecionada}</h3><p>{materiais.length} material(is) salvo(s)</p></div></div>{materiais.map((material, index) => <Materia key={`${material.criadaEm}-${index}`} materia={material} />)}</section>;
+    return <section className="albums-view"><button type="button" className="back-link" onClick={() => selecionar(null)}>Voltar para Minhas Matérias</button><div className="albums-heading"><span className="album-large-icon">📁</span><div><h3>{selecionada}</h3><p>{materiais.length} material(is) salvo(s)</p></div></div>{materiais.map((material, index) => <Materia key={`${material.criadaEm}-${index}`} materia={material} excluir={excluir} />)}</section>;
   }
 
   const nomes = Object.keys(grupos).sort((a, b) => a.localeCompare(b, 'pt-BR'));
