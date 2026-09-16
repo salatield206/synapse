@@ -294,7 +294,7 @@ export default function Home() {
     <h3 className="section-title">Revisão Recente</h3>
     {materias.map((materia, index) => <Materia key={`${materia.criadaEm}-${index}`} materia={materia} excluir={excluirMaterial} />)}
     </> : <Albumes materias={materias} selecionada={materiaSelecionada} selecionar={setMateriaSelecionada} excluir={excluirMaterial} />}
-    <input ref={fotoInput} className="file-input" type="file" accept="image/*" capture="environment" onChange={(event) => lerArquivo(event, 'foto')} />
+    <input ref={fotoInput} className="file-input" type="file" accept="image/*" onChange={(event) => lerArquivo(event, 'foto')} />
     <input ref={documentoInput} className="file-input" type="file" accept="application/pdf,.pdf,.doc,.docx" onChange={(event) => lerArquivo(event, 'documento')} />
     {modal && <Modal tipo={modal} form={form} setForm={setForm} fechar={() => { if (!salvandoFoto) { setModal(null); setFotoPendente(null); } }} salvar={modal === 'link' ? salvarLink : modal === 'foto' ? salvarFoto : salvarMateria} foto={fotoPendente} salvando={salvandoFoto} />}
   </main>;
