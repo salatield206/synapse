@@ -1,6 +1,0 @@
-{
-  "version": 3,
-  "sources": [],
-  "sections": [
-    {"offset": {"line": 4, "column": 0}, "map": {"version":3,"sources":["file:///C:/Users/salat/Downloads/synapse_codigo%20(2)/app/providers.js"],"sourcesContent":["'use client';\r\n\r\nimport { SessionProvider } from 'next-auth/react';\r\n\r\nexport default function Providers({ children }) {\r\n  return <SessionProvider>{children}</SessionProvider>;\r\n}\r\n"],"names":["Providers","children"],"mappings":";;;;;AAEA;AAFA;;;AAIe,SAASA,UAAU,EAAEC,QAAQ,EAAE;IAC5C,qBAAO,6LAAC,oKAAe;kBAAEA;;;;;;AAC3B;KAFwBD"}}]
-}

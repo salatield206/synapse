@@ -1,5 +1,7 @@
 import NextAuth from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
+import { compare } from 'bcryptjs';
+import { getDb } from '../../../../lib/db';
 
 export const authOptions = {
   providers: [
@@ -10,18 +12,21 @@ export const authOptions = {
         password: { label: 'Senha', type: 'password' }
       },
       async authorize(credentials) {
-        if (
-          credentials?.email === 'estudante@universidade.edu.br' &&
-          credentials?.password === '123456'
-        ) {
-          return {
-            id: 'estudante-1',
-            name: 'Estudante',
-            email: 'estudante@universidade.edu.br'
-          };
-        }
+        const sql = getDb();
+        const email = credentials?.email?.trim().toLowerCase();
+        const password = credentials?.password;
+        if (!email || !password) return null;
 
-        return null;
+        const usuarios = await sql`
+          SELECT id, nome, email, senha_hash
+          FROM usuarios
+          WHERE email = ${email}
+          LIMIT 1
+        `;
+        const usuario = usuarios[0];
+        if (!usuario || !(await compare(password, usuario.senha_hash))) return null;
+
+        return { id: String(usuario.id), name: usuario.nome, email: usuario.email };
       }
     })
   ],
