@@ -18,15 +18,15 @@ export const authOptions = {
         if (!email || !password) return null;
 
         const usuarios = await sql`
-          SELECT id, nome, email, senha_hash
-          FROM usuarios
+          SELECT id, name, email, password
+          FROM users
           WHERE email = ${email}
           LIMIT 1
         `;
         const usuario = usuarios[0];
-        if (!usuario || !(await compare(password, usuario.senha_hash))) return null;
+        if (!usuario || !(await compare(password, usuario.password))) return null;
 
-        return { id: String(usuario.id), name: usuario.nome, email: usuario.email };
+        return { id: String(usuario.id), name: usuario.name, email: usuario.email };
       }
     })
   ],

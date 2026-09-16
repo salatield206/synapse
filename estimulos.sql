@@ -1,18 +1,17 @@
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
 
-CREATE TABLE IF NOT EXISTS usuarios (
+CREATE TABLE IF NOT EXISTS users (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    nome TEXT NOT NULL,
+    name TEXT NOT NULL,
     email TEXT NOT NULL UNIQUE,
-    senha_hash TEXT NOT NULL,
-    criado_em TIMESTAMPTZ NOT NULL DEFAULT now()
+    password TEXT NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS estimulos (
+CREATE TABLE IF NOT EXISTS materials (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     tipo TEXT NOT NULL CHECK (tipo IN ('escrito', 'foto', 'audio', 'link', 'documento')),
     titulo TEXT NOT NULL,
-    conteudo_url TEXT,
-    texto_nota TEXT,
-    criado_em TIMESTAMPTZ NOT NULL DEFAULT now()
+    conteudo TEXT,
+    data TIMESTAMPTZ NOT NULL DEFAULT now()
 );

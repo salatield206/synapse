@@ -16,14 +16,14 @@ export async function POST(request) {
       return Response.json({ message: 'A senha deve ter pelo menos 6 caracteres.' }, { status: 400 });
     }
 
-    const usuarios = await sql`SELECT id FROM usuarios WHERE email = ${emailNormalizado} LIMIT 1`;
+    const usuarios = await sql`SELECT id FROM users WHERE email = ${emailNormalizado} LIMIT 1`;
     if (usuarios.length > 0) {
       return Response.json({ message: 'Este e-mail já está cadastrado.' }, { status: 409 });
     }
 
     const senhaHash = await hash(senha, 12);
     await sql`
-      INSERT INTO usuarios (nome, email, senha_hash)
+      INSERT INTO users (name, email, password)
       VALUES (${nomeNormalizado}, ${emailNormalizado}, ${senhaHash})
     `;
 
