@@ -8,28 +8,21 @@ const STORAGE_KEY = 'synapse-materias';
 async function comprimirImagem(arquivo) {
   const imagem = await createImageBitmap(arquivo);
   const canvas = document.createElement('canvas');
-  const limiteInicial = 1600;
-  let escala = Math.min(1, limiteInicial / Math.max(imagem.width, imagem.height));
-  let blob;
+  const largura = Math.min(800, imagem.width);
+  const altura = Math.max(1, Math.round(imagem.height * (largura / imagem.width)));
+  canvas.width = largura;
+  canvas.height = altura;
 
-  do {
-    canvas.width = Math.max(1, Math.round(imagem.width * escala));
-    canvas.height = Math.max(1, Math.round(imagem.height * escala));
-    const contexto = canvas.getContext('2d');
-    contexto.drawImage(imagem, 0, 0, canvas.width, canvas.height);
-    blob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/jpeg', 0.7));
-    escala *= 0.8;
-  } while (blob && blob.size > 700 * 1024 && escala > 0.35);
+  const contexto = canvas.getContext('2d');
+  if (!contexto) {
+    imagem.close();
+    throw new Error('Não foi possível preparar a imagem.');
+  }
 
+  contexto.drawImage(imagem, 0, 0, largura, altura);
+  const imagemComprimida = canvas.toDataURL('image/jpeg', 0.6);
   imagem.close();
-  if (!blob) throw new Error('Não foi possível processar a imagem.');
-
-  return await new Promise((resolve, reject) => {
-    const leitor = new FileReader();
-    leitor.onload = () => resolve(leitor.result);
-    leitor.onerror = () => reject(new Error('Não foi possível ler a imagem comprimida.'));
-    leitor.readAsDataURL(blob);
-  });
+  return imagemComprimida;
 }
 
 export default function Home() {
@@ -255,6 +248,7 @@ export default function Home() {
     const arquivo = event.target.files?.[0];
     if (!arquivo) return;
     if (tipo === 'foto') {
+      setSalvandoFoto(true);
       try {
         const imagem = await comprimirImagem(arquivo);
         setFotoPendente({ titulo: arquivo.name, imagem });
@@ -263,6 +257,7 @@ export default function Home() {
       } catch (error) {
         alert(error.message || 'Não foi possível processar a foto.');
       } finally {
+        setSalvandoFoto(false);
         event.target.value = '';
       }
       return;
