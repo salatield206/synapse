@@ -4,6 +4,7 @@
 .btn-logout:hover { background: #800080; border-color: #d12a9b; transform: translateY(-1px); }
 .btn-logout:focus-visible { outline: 2px solid #d12a9b; outline-offset: 3px; }
 * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; }
+input, textarea, select { font-size: 16px; }
 body { background: #1a0029; color: #fff; overflow-x: hidden; }
 .screen { min-height: 100vh; padding: 30px 25px; animation: fadeIn .4s ease-out; }
 .login { max-width: 480px; margin: auto; }
