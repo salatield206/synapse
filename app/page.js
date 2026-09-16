@@ -76,6 +76,13 @@ export default function Home() {
   }
 
   async function handleLogout() {
+    const preenchendoMateria = Object.values(form).some((valor) => valor.trim());
+    const temAlteracoesNaoSalvas = modal !== null || preenchendoMateria || gravando;
+
+    if (temAlteracoesNaoSalvas && !window.confirm('Você tem alterações não salvas. Tem certeza que deseja sair?')) {
+      return;
+    }
+
     localStorage.setItem(STORAGE_KEY, JSON.stringify(materias));
     await signOut({ callbackUrl: '/' });
   }
