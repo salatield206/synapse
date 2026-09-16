@@ -8,6 +8,8 @@ const STORAGE_KEY = 'synapse-materias';
 export default function Home() {
   const { status } = useSession();
   const [materias, setMaterias] = useState([]);
+  const [aba, setAba] = useState('recentes');
+  const [materiaSelecionada, setMateriaSelecionada] = useState(null);
   const [modal, setModal] = useState(null);
   const [gravando, setGravando] = useState(false);
   const [email, setEmail] = useState('');
@@ -18,7 +20,7 @@ export default function Home() {
   const [senhaCadastro, setSenhaCadastro] = useState('');
   const [loading, setLoading] = useState(false);
   const [erroLogin, setErroLogin] = useState('');
-  const [form, setForm] = useState({ titulo: '', texto: '', url: '' });
+  const [form, setForm] = useState({ titulo: '', texto: '', url: '', materia: '' });
   const gravador = useRef(null);
   const partesAudio = useRef([]);
   const fotoInput = useRef(null);
@@ -82,17 +84,39 @@ export default function Home() {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(novas));
   }
 
+  async function salvarMaterialNoBanco(material) {
+    try {
+      const resposta = await fetch('/api/materials', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          materia: material.materia,
+          tipo: material.tipo,
+          titulo: material.titulo,
+          conteudo: material.texto || material.url || material.arquivo || material.imagem || material.audio
+        })
+      });
+      if (!resposta.ok) console.error('Não foi possível salvar o material no banco.');
+    } catch (error) {
+      console.error('Erro ao salvar material no banco:', error);
+    }
+  }
+
   function salvarMateria(event) {
     event.preventDefault();
-    atualizarMaterias([{ tipo: 'escrito', titulo: form.titulo.trim(), texto: form.texto.trim(), criadaEm: new Date().toISOString() }, ...materias]);
-    setForm({ titulo: '', texto: '', url: '' });
+    const novoMaterial = { tipo: 'escrito', materia: form.materia.trim() || 'Sem matéria', titulo: form.titulo.trim(), texto: form.texto.trim(), criadaEm: new Date().toISOString() };
+    atualizarMaterias([novoMaterial, ...materias]);
+    void salvarMaterialNoBanco(novoMaterial);
+    setForm({ titulo: '', texto: '', url: '', materia: '' });
     setModal(null);
   }
 
   function salvarLink(event) {
     event.preventDefault();
-    atualizarMaterias([{ tipo: 'link', titulo: form.titulo.trim(), url: form.url.trim(), criadaEm: new Date().toISOString() }, ...materias]);
-    setForm({ titulo: '', texto: '', url: '' });
+    const novoMaterial = { tipo: 'link', materia: form.materia.trim() || 'Sem matéria', titulo: form.titulo.trim(), url: form.url.trim(), criadaEm: new Date().toISOString() };
+    atualizarMaterias([novoMaterial, ...materias]);
+    void salvarMaterialNoBanco(novoMaterial);
+    setForm({ titulo: '', texto: '', url: '', materia: '' });
     setModal(null);
   }
 
@@ -111,7 +135,7 @@ export default function Home() {
       gravador.current.ondataavailable = (event) => { if (event.data.size) partesAudio.current.push(event.data); };
       gravador.current.onstop = () => {
         const leitor = new FileReader();
-        leitor.onloadend = () => atualizarMaterias([{ tipo: 'audio', titulo: 'Nova matéria em áudio', audio: leitor.result, criadaEm: new Date().toISOString() }, ...materias]);
+        leitor.onloadend = () => { const novoMaterial = { tipo: 'audio', materia: 'Sem matéria', titulo: 'Nova matéria em áudio', audio: leitor.result, criadaEm: new Date().toISOString() }; atualizarMaterias([novoMaterial, ...materias]); void salvarMaterialNoBanco(novoMaterial); };
         leitor.readAsDataURL(new Blob(partesAudio.current, { type: gravador.current.mimeType || 'audio/webm' }));
         stream.getTracks().forEach((track) => track.stop());
         setGravando(false);
@@ -125,7 +149,7 @@ export default function Home() {
     const arquivo = event.target.files?.[0];
     if (!arquivo) return;
     const leitor = new FileReader();
-    leitor.onload = () => atualizarMaterias([{ tipo, titulo: arquivo.name, [tipo === 'foto' ? 'imagem' : 'arquivo']: leitor.result, criadaEm: new Date().toISOString() }, ...materias]);
+    leitor.onload = () => { const novoMaterial = { tipo, materia: 'Sem matéria', titulo: arquivo.name, [tipo === 'foto' ? 'imagem' : 'arquivo']: leitor.result, criadaEm: new Date().toISOString() }; atualizarMaterias([novoMaterial, ...materias]); void salvarMaterialNoBanco(novoMaterial); };
     leitor.readAsDataURL(arquivo);
     event.target.value = '';
   }
@@ -136,6 +160,8 @@ export default function Home() {
 
   return <main className="screen dashboard">
     <header className="dash-header"><div><h2>Hipocampo Digital</h2><p>Repositório Universal Ativo</p></div><button type="button" className="btn-logout" onClick={handleLogout}>Sair</button></header>
+    <nav className="dashboard-tabs" aria-label="Navegação do repositório"><button type="button" className={aba === 'recentes' ? 'tab-active' : ''} onClick={() => { setAba('recentes'); setMateriaSelecionada(null); }}>Recentes</button><button type="button" className={aba === 'materias' ? 'tab-active' : ''} onClick={() => { setAba('materias'); setMateriaSelecionada(null); }}>Minhas Matérias</button></nav>
+    {aba === 'recentes' ? <>
     <h3 className="section-title">Adicionar Novo Estímulo</h3>
     <div className="grid-container">
       <button type="button" className="card" onClick={() => setModal('materia')}><span className="card-icon">📝</span><span>Matéria<br />Escrita</span></button>
@@ -146,6 +172,7 @@ export default function Home() {
     </div>
     <h3 className="section-title">Revisão Recente</h3>
     {materias.map((materia, index) => <Materia key={`${materia.criadaEm}-${index}`} materia={materia} />)}
+    </> : <Albumes materias={materias} selecionada={materiaSelecionada} selecionar={setMateriaSelecionada} />}
     <input ref={fotoInput} className="file-input" type="file" accept="image/*" capture="environment" onChange={(event) => lerArquivo(event, 'foto')} />
     <input ref={documentoInput} className="file-input" type="file" accept="application/pdf,.pdf,.doc,.docx" onChange={(event) => lerArquivo(event, 'documento')} />
     {modal && <Modal tipo={modal} form={form} setForm={setForm} fechar={() => setModal(null)} salvar={modal === 'link' ? salvarLink : salvarMateria} />}
@@ -154,9 +181,26 @@ export default function Home() {
 
 function Materia({ materia }) {
   const descricao = { foto: 'Matéria por foto', audio: 'Matéria por áudio', link: 'Link de estudos', documento: 'Documento', escrito: 'Matéria escrita' }[materia.tipo];
-  return <article className="list-item saved-item"><div className="li-title">{materia.titulo}</div><div className="li-desc">{descricao} • {new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short', timeStyle: 'short' }).format(new Date(materia.criadaEm))}</div>{materia.tipo === 'foto' && <img className="materia-foto" src={materia.imagem} alt={materia.titulo} />}{materia.tipo === 'audio' && <audio className="materia-audio" controls src={materia.audio} />}{materia.tipo === 'link' && <a className="materia-link" href={materia.url}>Abrir material de estudos</a>}{materia.tipo === 'documento' && <a className="materia-link" href={materia.arquivo} download={materia.titulo}>Baixar documento</a>}{materia.tipo === 'escrito' && <div className="li-content">{materia.texto}</div>}</article>;
+  return <article className="list-item saved-item"><div className="li-title">{materia.titulo}</div><div className="li-desc">{materia.materia || 'Sem matéria'} • {descricao} • {new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short', timeStyle: 'short' }).format(new Date(materia.criadaEm))}</div>{materia.tipo === 'foto' && <img className="materia-foto" src={materia.imagem} alt={materia.titulo} />}{materia.tipo === 'audio' && <audio className="materia-audio" controls src={materia.audio} />}{materia.tipo === 'link' && <a className="materia-link" href={materia.url}>Abrir material de estudos</a>}{materia.tipo === 'documento' && <a className="materia-link" href={materia.arquivo} download={materia.titulo}>Baixar documento</a>}{materia.tipo === 'escrito' && <div className="li-content">{materia.texto}</div>}</article>;
+}
+
+function Albumes({ materias, selecionada, selecionar }) {
+  const grupos = materias.reduce((acumulado, material) => {
+    const nome = material.materia?.trim() || 'Sem matéria';
+    if (!acumulado[nome]) acumulado[nome] = [];
+    acumulado[nome].push(material);
+    return acumulado;
+  }, {});
+
+  if (selecionada) {
+    const materiais = grupos[selecionada] || [];
+    return <section className="albums-view"><button type="button" className="back-link" onClick={() => selecionar(null)}>Voltar para Minhas Matérias</button><div className="albums-heading"><span className="album-large-icon">📁</span><div><h3>{selecionada}</h3><p>{materiais.length} material(is) salvo(s)</p></div></div>{materiais.map((material, index) => <Materia key={`${material.criadaEm}-${index}`} materia={material} />)}</section>;
+  }
+
+  const nomes = Object.keys(grupos).sort((a, b) => a.localeCompare(b, 'pt-BR'));
+  return <section className="albums-view"><div className="albums-intro"><h3 className="section-title">Minhas Matérias</h3><p>Organize seus estudos por assunto.</p></div>{nomes.length === 0 ? <p className="empty-state">Nenhuma matéria criada ainda.</p> : <div className="albums-grid">{nomes.map((nome) => <button type="button" className="album-card" key={nome} onClick={() => selecionar(nome)}><span className="album-icon">📁</span><strong>{nome}</strong><span>{grupos[nome].length} material(is)</span></button>)}</div>}</section>;
 }
 
 function Modal({ tipo, form, setForm, fechar, salvar }) {
-  return <div className="modal active"><div className="modal-content"><div className="modal-header"><h2>{tipo === 'link' ? 'Salvar link de estudos' : 'Escrever matéria'}</h2><button type="button" className="modal-close" onClick={fechar}>&times;</button></div><form onSubmit={salvar}><div className="input-group"><label>Título</label><input className="input-real" value={form.titulo} onChange={(event) => setForm({ ...form, titulo: event.target.value })} required /></div>{tipo === 'link' ? <div className="input-group"><label>Link de estudos</label><input className="input-real" type="url" value={form.url} onChange={(event) => setForm({ ...form, url: event.target.value })} required /></div> : <div className="input-group"><label>Texto</label><textarea className="input-real textarea-real" value={form.texto} onChange={(event) => setForm({ ...form, texto: event.target.value })} required /></div>}<button className="btn-primary" type="submit">Salvar</button></form></div></div>;
+  return <div className="modal active"><div className="modal-content"><div className="modal-header"><h2>{tipo === 'link' ? 'Salvar link de estudos' : 'Escrever matéria'}</h2><button type="button" className="modal-close" onClick={fechar}>&times;</button></div><form onSubmit={salvar}><div className="input-group"><label>Nome da Matéria</label><input className="input-real" value={form.materia} onChange={(event) => setForm({ ...form, materia: event.target.value })} placeholder="Ex: Matemática, Biologia" required /></div><div className="input-group"><label>Título</label><input className="input-real" value={form.titulo} onChange={(event) => setForm({ ...form, titulo: event.target.value })} required /></div>{tipo === 'link' ? <div className="input-group"><label>Link de estudos</label><input className="input-real" type="url" value={form.url} onChange={(event) => setForm({ ...form, url: event.target.value })} required /></div> : <div className="input-group"><label>Texto</label><textarea className="input-real textarea-real" value={form.texto} onChange={(event) => setForm({ ...form, texto: event.target.value })} required /></div>}<button className="btn-primary" type="submit">Salvar</button></form></div></div>;
 }

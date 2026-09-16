@@ -10,6 +10,7 @@ CREATE TABLE IF NOT EXISTS users (
 CREATE TABLE IF NOT EXISTS materials (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    materia TEXT NOT NULL DEFAULT 'Sem matéria',
     tipo TEXT NOT NULL CHECK (tipo IN ('escrito', 'foto', 'audio', 'link', 'documento')),
     titulo TEXT NOT NULL,
     conteudo TEXT,

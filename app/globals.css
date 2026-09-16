@@ -5,6 +5,20 @@
 .btn-logout:focus-visible { outline: 2px solid #d12a9b; outline-offset: 3px; }
 * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; }
 input, textarea, select { font-size: 16px; }
+.dashboard-tabs { display: flex; gap: 8px; margin-bottom: 28px; border-bottom: 1px solid #2a0048; }
+.dashboard-tabs button { border: 0; border-bottom: 2px solid transparent; background: transparent; color: #9d7da8; padding: 10px 4px; cursor: pointer; font-size: 13px; font-weight: bold; }
+.dashboard-tabs button:hover, .dashboard-tabs .tab-active { color: #fff; border-bottom-color: #a90072; }
+.albums-view { animation: fadeIn .3s ease-out; }
+.albums-intro p, .albums-heading p, .empty-state { color: #9d7da8; font-size: 13px; margin-top: 6px; }
+.albums-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 14px; }
+.album-card { min-height: 145px; display: flex; flex-direction: column; align-items: flex-start; justify-content: space-between; background: #2a0048; border: 1px solid #560072; border-radius: 10px; color: #fff; padding: 16px; text-align: left; cursor: pointer; transition: transform .2s ease, border-color .2s ease, background .2s ease; }
+.album-card:hover { background: #35005b; border-color: #a90072; transform: translateY(-2px); }
+.album-icon, .album-large-icon { font-size: 34px; }
+.album-card strong { font-size: 15px; overflow-wrap: anywhere; }
+.album-card span:last-child { color: #a90072; font-size: 12px; }
+.back-link { background: transparent; border: 0; color: #d12a9b; cursor: pointer; font-size: 12px; font-weight: bold; padding: 0; }
+.albums-heading { display: flex; align-items: center; gap: 14px; margin: 24px 0; }
+@media (max-width: 480px) { .albums-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; } .album-card { min-height: 125px; padding: 12px; } }
 body { background: #1a0029; color: #fff; overflow-x: hidden; }
 .screen { min-height: 100vh; padding: 30px 25px; animation: fadeIn .4s ease-out; }
 .login { max-width: 480px; margin: auto; }
