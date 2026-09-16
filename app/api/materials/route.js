@@ -1,11 +1,17 @@
 import { getServerSession } from 'next-auth';
+import { NextResponse } from 'next/server';
 import { authOptions } from '../auth/[...nextauth]/route';
 import { getDb } from '../../../lib/db';
 
 export async function POST(request) {
   const session = await getServerSession(authOptions);
-  if (!session?.user?.id) {
-    return Response.json({ message: 'Usuário não autenticado.' }, { status: 401 });
+  if (!session || !session.user) {
+    return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
+  }
+
+  const userId = session.user.id;
+  if (!userId) {
+    return NextResponse.json({ error: 'Sessão sem identificador de usuário' }, { status: 401 });
   }
 
   try {
@@ -20,13 +26,13 @@ export async function POST(request) {
     const sql = getDb();
     const [material] = await sql`
       INSERT INTO materials (user_id, materia, tipo, titulo, conteudo)
-      VALUES (${session.user.id}, ${materiaNormalizada}, ${tipo}, ${tituloNormalizado}, ${conteudo || null})
+      VALUES (${userId}, ${materiaNormalizada}, ${tipo}, ${tituloNormalizado}, ${conteudo || null})
       RETURNING id, user_id, materia, tipo, titulo, conteudo, data
     `;
 
-    return Response.json(material, { status: 201 });
+    return NextResponse.json(material, { status: 201 });
   } catch (error) {
     console.error('Erro ao salvar material:', error);
-    return Response.json({ message: 'Não foi possível salvar o material.' }, { status: 500 });
+    return NextResponse.json({ message: 'Não foi possível salvar o material.' }, { status: 500 });
   }
 }
