@@ -8,7 +8,7 @@ const STORAGE_KEY = 'synapse-materias';
 async function comprimirImagem(arquivo) {
   const imagem = await createImageBitmap(arquivo);
   const canvas = document.createElement('canvas');
-  const largura = Math.min(800, imagem.width);
+  const largura = Math.min(500, imagem.width);
   const altura = Math.max(1, Math.round(imagem.height * (largura / imagem.width)));
   canvas.width = largura;
   canvas.height = altura;
@@ -20,7 +20,7 @@ async function comprimirImagem(arquivo) {
   }
 
   contexto.drawImage(imagem, 0, 0, largura, altura);
-  const imagemComprimida = canvas.toDataURL('image/jpeg', 0.6);
+  const imagemComprimida = canvas.toDataURL('image/jpeg', 0.4);
   imagem.close();
   return imagemComprimida;
 }
@@ -119,6 +119,10 @@ export default function Home() {
 
   async function salvarMaterialNoBanco(material) {
     try {
+      if (material.tipo === 'foto') {
+        console.log(`Tamanho da imagem Base64: ${material.imagem?.length || 0} caracteres`);
+      }
+
       const resposta = await fetch('/api/materials', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
