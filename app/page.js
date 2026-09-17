@@ -37,6 +37,7 @@ export default function Home() {
   const [salvandoFoto, setSalvandoFoto] = useState(false);
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [isLogin, setIsLogin] = useState(true);
   const [nomeCadastro, setNomeCadastro] = useState('');
   const [emailCadastro, setEmailCadastro] = useState('');
@@ -275,7 +276,7 @@ export default function Home() {
 
   if (status === 'loading') return <main className="screen login" />;
 
-  if (status !== 'authenticated') return <main className="screen login"><div className="logo-container"><div className="logo-s">S</div><h1>SYNAPSE</h1><p>SYNAPSE STUDY SYSTEM</p></div>{isLogin ? <form onSubmit={acessarHub}><div className="input-group"><label>E-mail Acadêmico</label><input className="input-real" type="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="estudante@universidade.edu.br" required /></div><div className="input-group"><label>Senha</label><input className="input-real" type="password" value={senha} onChange={(event) => setSenha(event.target.value)} placeholder="••••••••••••" required /></div>{erroLogin && <p role="alert">{erroLogin}</p>}<button type="submit" className="btn-primary">Entrar</button><button type="button" className="auth-toggle" onClick={() => setIsLogin(false)}>Não tem uma conta? Cadastre-se</button></form> : <form onSubmit={handleRegister}><div className="input-group"><label>Nome</label><input className="input-real" type="text" value={nomeCadastro} onChange={(event) => setNomeCadastro(event.target.value)} required /></div><div className="input-group"><label>E-mail</label><input className="input-real" type="email" value={emailCadastro} onChange={(event) => setEmailCadastro(event.target.value)} required /></div><div className="input-group"><label>Senha</label><input className="input-real" type="password" value={senhaCadastro} onChange={(event) => setSenhaCadastro(event.target.value)} required /></div><button type="submit" className="btn-primary" disabled={loading}>{loading ? 'Criando conta...' : 'Registrar'}</button><button type="button" className="auth-toggle" onClick={() => setIsLogin(true)}>Já tem uma conta? Faça login</button></form>}</main>;
+  if (status !== 'authenticated') return <main className="screen login"><div className="logo-container"><div className="logo-s">S</div><h1>SYNAPSE</h1><p>SYNAPSE STUDY SYSTEM</p></div>{isLogin ? <form onSubmit={acessarHub}><div className="input-group"><label>E-mail Acadêmico</label><input className="input-real" type="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="estudante@universidade.edu.br" required /></div><div className="input-group"><label>Senha</label><div className="password-field"><input className="input-real" type={showPassword ? 'text' : 'password'} value={senha} onChange={(event) => setSenha(event.target.value)} placeholder="••••••••••••" required /><button type="button" className="password-toggle" onClick={() => setShowPassword((visivel) => !visivel)} aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}>{showPassword ? <EyeOffIcon /> : <EyeIcon />}</button></div></div>{erroLogin && <p role="alert">{erroLogin}</p>}<button type="submit" className="btn-primary">Entrar</button><button type="button" className="auth-toggle" onClick={() => setIsLogin(false)}>Não tem uma conta? Cadastre-se</button></form> : <form onSubmit={handleRegister}><div className="input-group"><label>Nome</label><input className="input-real" type="text" value={nomeCadastro} onChange={(event) => setNomeCadastro(event.target.value)} required /></div><div className="input-group"><label>E-mail</label><input className="input-real" type="email" value={emailCadastro} onChange={(event) => setEmailCadastro(event.target.value)} required /></div><div className="input-group"><label>Senha</label><div className="password-field"><input className="input-real" type={showPassword ? 'text' : 'password'} value={senhaCadastro} onChange={(event) => setSenhaCadastro(event.target.value)} required /><button type="button" className="password-toggle" onClick={() => setShowPassword((visivel) => !visivel)} aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}>{showPassword ? <EyeOffIcon /> : <EyeIcon />}</button></div></div><button type="submit" className="btn-primary" disabled={loading}>{loading ? 'Criando conta...' : 'Registrar'}</button><button type="button" className="auth-toggle" onClick={() => setIsLogin(true)}>Já tem uma conta? Faça login</button></form>}</main>;
 
   const nomesMaterias = [...new Set(materias.map((material) => material.materia).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'pt-BR'));
 
@@ -299,6 +300,14 @@ export default function Home() {
     <input ref={documentoInput} className="file-input" type="file" accept="application/pdf,.pdf,.doc,.docx" onChange={(event) => lerArquivo(event, 'documento')} />
     {modal && <Modal tipo={modal} form={form} setForm={setForm} fechar={() => { if (!salvandoFoto) { setModal(null); setFotoPendente(null); } }} salvar={modal === 'link' ? salvarLink : modal === 'foto' ? salvarFoto : salvarMateria} foto={fotoPendente} salvando={salvandoFoto} />}
   </main>;
+}
+
+function EyeIcon() {
+  return <svg aria-hidden="true" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z" /><circle cx="12" cy="12" r="3" /></svg>;
+}
+
+function EyeOffIcon() {
+  return <svg aria-hidden="true" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m3 3 18 18" /><path d="M10.6 10.6a2 2 0 0 0 2.8 2.8" /><path d="M9.9 4.2A10.5 10.5 0 0 1 12 4c6.5 0 10 8 10 8a18.3 18.3 0 0 1-3.1 4.3" /><path d="M6.6 6.6C3.7 8.5 2 12 2 12s3.5 8 10 8a10.2 10.2 0 0 0 4.1-.9" /></svg>;
 }
 
 function Materia({ materia, excluir }) {
