@@ -21,9 +21,7 @@ input, textarea, select { font-size: 16px; }
 .album-card span:last-child { color: #a90072; font-size: 12px; }
 .back-link { background: transparent; border: 0; color: #d12a9b; cursor: pointer; font-size: 12px; font-weight: bold; padding: 0; }
 .albums-heading { display: flex; align-items: center; gap: 14px; margin: 24px 0; }
-.upload-subject { margin-bottom: 20px; }
-.upload-subject label { display: block; color: #800080; font-size: 12px; font-weight: bold; letter-spacing: 1px; margin-bottom: 8px; text-transform: uppercase; }
-.upload-subject p { color: #9d7da8; font-size: 12px; margin-top: 7px; }
+.file-pending { margin-bottom: 18px; color: #9d7da8; font-size: 13px; overflow-wrap: anywhere; }
 .material-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
 .delete-material { flex: 0 0 auto; border: 1px solid #7d2735; border-radius: 6px; background: #421c32; color: #ff7180; padding: 6px 8px; cursor: pointer; font-size: 16px; line-height: 1; }
 .delete-material:hover { background: #8f263b; color: #fff; }

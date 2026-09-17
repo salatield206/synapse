@@ -47,8 +47,8 @@ export default function Home() {
   const [materiaSelecionada, setMateriaSelecionada] = useState(null);
   const [modal, setModal] = useState(null);
   const [gravando, setGravando] = useState(false);
-  const [materiaUpload, setMateriaUpload] = useState('');
   const [fotoPendente, setFotoPendente] = useState(null);
+  const [documentoPendente, setDocumentoPendente] = useState(null);
   const [salvandoFoto, setSalvandoFoto] = useState(false);
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
@@ -211,6 +211,30 @@ export default function Home() {
     }
   }
 
+  async function salvarDocumento(event) {
+    event.preventDefault();
+    if (!documentoPendente) return;
+
+    const novoMaterial = {
+      tipo: 'documento',
+      materia: form.materia.trim() || 'Geral',
+      titulo: form.titulo.trim() || documentoPendente.titulo,
+      arquivo: documentoPendente.arquivo,
+      criadaEm: new Date().toISOString()
+    };
+    const salvo = await salvarMaterialNoBanco(novoMaterial);
+    if (!salvo) {
+      alert('Não foi possível salvar o documento.');
+      return;
+    }
+
+    atualizarMaterias([{ ...novoMaterial, id: salvo.id }, ...materias]);
+    setDocumentoPendente(null);
+    setForm({ titulo: '', texto: '', url: '', materia: '' });
+    setModal(null);
+    alert('Salvo com sucesso');
+  }
+
   async function excluirMaterial(material) {
     if (!window.confirm('Tem certeza que deseja excluir este material permanentemente?')) return;
 
@@ -269,7 +293,7 @@ export default function Home() {
       gravador.current.ondataavailable = (event) => { if (event.data.size) partesAudio.current.push(event.data); };
       gravador.current.onstop = () => {
         const leitor = new FileReader();
-        leitor.onloadend = () => { const novoMaterial = { tipo: 'audio', materia: materiaUpload.trim() || 'Geral', titulo: 'Nova matéria em áudio', audio: leitor.result, criadaEm: new Date().toISOString() }; atualizarMaterias([novoMaterial, ...materias]); void salvarMaterialNoBanco(novoMaterial); };
+        leitor.onloadend = () => { const novoMaterial = { tipo: 'audio', materia: 'Geral', titulo: 'Nova matéria em áudio', audio: leitor.result, criadaEm: new Date().toISOString() }; atualizarMaterias([novoMaterial, ...materias]); void salvarMaterialNoBanco(novoMaterial); };
         leitor.readAsDataURL(new Blob(partesAudio.current, { type: gravador.current.mimeType || 'audio/webm' }));
         stream.getTracks().forEach((track) => track.stop());
         setGravando(false);
@@ -287,7 +311,7 @@ export default function Home() {
       try {
         const imagem = await comprimirImagem(arquivo);
         setFotoPendente({ titulo: arquivo.name, imagem });
-        setForm({ titulo: arquivo.name, texto: '', url: '', materia: materiaUpload });
+        setForm({ titulo: arquivo.name, texto: '', url: '', materia: '' });
         setModal('foto');
       } catch (error) {
         alert(error.message || 'Não foi possível processar a foto.');
@@ -298,7 +322,18 @@ export default function Home() {
       return;
     }
     const leitor = new FileReader();
-    leitor.onload = () => { const novoMaterial = { tipo, materia: materiaUpload.trim() || 'Geral', titulo: arquivo.name, [tipo === 'foto' ? 'imagem' : 'arquivo']: leitor.result, criadaEm: new Date().toISOString() }; atualizarMaterias([novoMaterial, ...materias]); void salvarMaterialNoBanco(novoMaterial); };
+    leitor.onload = () => {
+      if (tipo === 'documento') {
+        setDocumentoPendente({ titulo: arquivo.name, arquivo: leitor.result });
+        setForm({ titulo: arquivo.name, texto: '', url: '', materia: '' });
+        setModal('documento');
+        return;
+      }
+
+      const novoMaterial = { tipo, materia: 'Geral', titulo: arquivo.name, arquivo: leitor.result, criadaEm: new Date().toISOString() };
+      atualizarMaterias([novoMaterial, ...materias]);
+      void salvarMaterialNoBanco(novoMaterial);
+    };
     leitor.readAsDataURL(arquivo);
     event.target.value = '';
   }
@@ -307,12 +342,9 @@ export default function Home() {
 
   if (status !== 'authenticated') return <main className="screen login"><div className="logo-container"><div className="logo-s">S</div><h1>SYNAPSE</h1><p>SYNAPSE STUDY SYSTEM</p></div>{isLogin ? <form onSubmit={acessarHub}><div className="input-group"><label>E-mail Acadêmico</label><input className="input-real" type="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="estudante@universidade.edu.br" required /></div><div className="input-group"><label>Senha</label><div className="password-field"><input className="input-real" type={showPassword ? 'text' : 'password'} value={senha} onChange={(event) => setSenha(event.target.value)} placeholder="••••••••••••" required /><button type="button" className="password-toggle" onClick={() => setShowPassword((visivel) => !visivel)} aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}>{showPassword ? <EyeOffIcon /> : <EyeIcon />}</button></div></div>{erroLogin && <p role="alert">{erroLogin}</p>}<button type="submit" className="btn-primary">Entrar</button><button type="button" className="auth-toggle" onClick={() => setIsLogin(false)}>Não tem uma conta? Cadastre-se</button></form> : <form onSubmit={handleRegister}><div className="input-group"><label>Nome</label><input className="input-real" type="text" value={nomeCadastro} onChange={(event) => setNomeCadastro(event.target.value)} required /></div><div className="input-group"><label>E-mail</label><input className="input-real" type="email" value={emailCadastro} onChange={(event) => setEmailCadastro(event.target.value)} required /></div><div className="input-group"><label>Senha</label><div className="password-field"><input className="input-real" type={showPassword ? 'text' : 'password'} value={senhaCadastro} onChange={(event) => setSenhaCadastro(event.target.value)} required /><button type="button" className="password-toggle" onClick={() => setShowPassword((visivel) => !visivel)} aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}>{showPassword ? <EyeOffIcon /> : <EyeIcon />}</button></div></div><button type="submit" className="btn-primary" disabled={loading}>{loading ? 'Criando conta...' : 'Registrar'}</button><button type="button" className="auth-toggle" onClick={() => setIsLogin(true)}>Já tem uma conta? Faça login</button></form>}</main>;
 
-  const nomesMaterias = [...new Set(materias.map((material) => material.materia).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'pt-BR'));
-
   return <main className="screen dashboard">
     <header className="dash-header"><div><h2>Hipocampo Digital</h2><p>Repositório Universal Ativo</p></div><button type="button" className="btn-logout" onClick={handleLogout}>Sair</button></header>
     <h3 className="section-title">Adicionar Novo Estímulo</h3>
-    <div className="upload-subject"><label htmlFor="materia-upload">Nome da Matéria</label><input id="materia-upload" className="input-real" type="text" value={materiaUpload} onChange={(event) => setMateriaUpload(event.target.value)} list="materias-existentes" placeholder="Ex: Matemática, Biologia" /><datalist id="materias-existentes">{nomesMaterias.map((nome) => <option value={nome} key={nome} />)}</datalist><p>Essa matéria será usada nos uploads de foto, áudio e documento.</p></div>
     <div className="grid-container">
       <button type="button" className="card" onClick={() => setModal('materia')}><span className="card-icon">📝</span><span>Matéria<br />Escrita</span></button>
       <button type="button" className="card" onClick={() => fotoInput.current.click()}><span className="card-icon">📷</span><span>Matéria<br />por Foto</span></button>
@@ -325,7 +357,7 @@ export default function Home() {
     <Albumes materias={materias} selecionada={materiaSelecionada} selecionar={setMateriaSelecionada} excluir={excluirMaterial} />
     <input ref={fotoInput} className="file-input" type="file" accept="image/*" onChange={(event) => lerArquivo(event, 'foto')} />
     <input ref={documentoInput} className="file-input" type="file" accept="application/pdf,.pdf,.doc,.docx" onChange={(event) => lerArquivo(event, 'documento')} />
-    {modal && <Modal tipo={modal} form={form} setForm={setForm} fechar={() => { if (!salvandoFoto) { setModal(null); setFotoPendente(null); } }} salvar={modal === 'link' ? salvarLink : modal === 'foto' ? salvarFoto : salvarMateria} foto={fotoPendente} salvando={salvandoFoto} />}
+    {modal && <Modal tipo={modal} form={form} setForm={setForm} fechar={() => { if (!salvandoFoto) { setModal(null); setFotoPendente(null); setDocumentoPendente(null); } }} salvar={modal === 'link' ? salvarLink : modal === 'foto' ? salvarFoto : modal === 'documento' ? salvarDocumento : salvarMateria} foto={fotoPendente} documento={documentoPendente} salvando={salvandoFoto} />}
   </main>;
 }
 
@@ -359,6 +391,6 @@ function Albumes({ materias, selecionada, selecionar, excluir }) {
   return <section className="albums-view"><div className="albums-intro"><h3 className="section-title">Minhas Matérias</h3><p>Organize seus estudos por assunto.</p></div>{nomes.length === 0 ? <p className="empty-state">Nenhuma matéria criada ainda.</p> : <div className="albums-grid">{nomes.map((nome) => <button type="button" className="album-card" key={nome} onClick={() => selecionar(nome)}><span className="album-icon">📁</span><strong>{nome}</strong><span>{grupos[nome].length} material(is)</span></button>)}</div>}</section>;
 }
 
-function Modal({ tipo, form, setForm, fechar, salvar, foto, salvando }) {
-  return <div className="modal active"><div className="modal-content"><div className="modal-header"><h2>{tipo === 'link' ? 'Salvar link de estudos' : tipo === 'foto' ? 'Salvar foto' : 'Escrever matéria'}</h2><button type="button" className="modal-close" onClick={fechar} disabled={salvando}>&times;</button></div><form onSubmit={salvar}>{tipo === 'foto' && foto && <img className="foto-preview" src={foto.imagem} alt="Pré-visualização da foto" />}<div className="input-group"><label>Nome da Matéria</label><input className="input-real" value={form.materia} onChange={(event) => setForm({ ...form, materia: event.target.value })} placeholder="Ex: Matemática, Biologia" required /></div><div className="input-group"><label>Título</label><input className="input-real" value={form.titulo} onChange={(event) => setForm({ ...form, titulo: event.target.value })} required /></div>{tipo === 'link' ? <div className="input-group"><label>Link de estudos</label><input className="input-real" type="url" value={form.url} onChange={(event) => setForm({ ...form, url: event.target.value })} required /></div> : tipo !== 'foto' && <div className="input-group"><label>Texto</label><textarea className="input-real textarea-real" value={form.texto} onChange={(event) => setForm({ ...form, texto: event.target.value })} required /></div>}<button className="btn-primary" type="submit" disabled={salvando}>{salvando ? 'Carregando...' : 'Salvar'}</button></form></div></div>;
+function Modal({ tipo, form, setForm, fechar, salvar, foto, documento, salvando }) {
+  return <div className="modal active"><div className="modal-content"><div className="modal-header"><h2>{tipo === 'link' ? 'Salvar link de estudos' : tipo === 'foto' ? 'Salvar foto' : tipo === 'documento' ? 'Salvar documento' : 'Escrever matéria'}</h2><button type="button" className="modal-close" onClick={fechar} disabled={salvando}>&times;</button></div><form onSubmit={salvar}>{tipo === 'foto' && foto && <img className="foto-preview" src={foto.imagem} alt="Pré-visualização da foto" />}{tipo === 'documento' && documento && <p className="file-pending">Arquivo selecionado: {documento.titulo}</p>}<div className="input-group"><label>Nome da Matéria</label><input className="input-real" value={form.materia} onChange={(event) => setForm({ ...form, materia: event.target.value })} placeholder="Ex: Matemática, Biologia" required /></div><div className="input-group"><label>Título</label><input className="input-real" value={form.titulo} onChange={(event) => setForm({ ...form, titulo: event.target.value })} required /></div>{tipo === 'link' ? <div className="input-group"><label>Link de estudos</label><input className="input-real" type="url" value={form.url} onChange={(event) => setForm({ ...form, url: event.target.value })} required /></div> : tipo !== 'foto' && tipo !== 'documento' && <div className="input-group"><label>Texto</label><textarea className="input-real textarea-real" value={form.texto} onChange={(event) => setForm({ ...form, texto: event.target.value })} required /></div>}<button className="btn-primary" type="submit" disabled={salvando}>{salvando ? 'Carregando...' : 'Salvar'}</button></form></div></div>;
 }
