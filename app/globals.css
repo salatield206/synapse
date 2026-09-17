@@ -10,9 +10,6 @@ input, textarea, select { font-size: 16px; }
 .password-toggle { position: absolute; top: 50%; right: 12px; display: grid; place-items: center; width: 32px; height: 32px; padding: 0; border: 0; border-radius: 6px; background: transparent; color: #a90072; cursor: pointer; transform: translateY(-50%); transition: color .2s ease, background .2s ease; }
 .password-toggle:hover { background: #560072; color: #fff; }
 .password-toggle:focus-visible { outline: 2px solid #d12a9b; outline-offset: 2px; }
-.dashboard-tabs { display: flex; gap: 8px; margin-bottom: 28px; border-bottom: 1px solid #2a0048; }
-.dashboard-tabs button { border: 0; border-bottom: 2px solid transparent; background: transparent; color: #9d7da8; padding: 10px 4px; cursor: pointer; font-size: 13px; font-weight: bold; }
-.dashboard-tabs button:hover, .dashboard-tabs .tab-active { color: #fff; border-bottom-color: #a90072; }
 .albums-view { animation: fadeIn .3s ease-out; }
 .albums-intro p, .albums-heading p, .empty-state { color: #9d7da8; font-size: 13px; margin-top: 6px; }
 .albums-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 14px; }

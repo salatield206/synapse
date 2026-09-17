@@ -28,7 +28,6 @@ async function comprimirImagem(arquivo) {
 export default function Home() {
   const { status } = useSession();
   const [materias, setMaterias] = useState([]);
-  const [aba, setAba] = useState('recentes');
   const [materiaSelecionada, setMateriaSelecionada] = useState(null);
   const [modal, setModal] = useState(null);
   const [gravando, setGravando] = useState(false);
@@ -282,8 +281,6 @@ export default function Home() {
 
   return <main className="screen dashboard">
     <header className="dash-header"><div><h2>Hipocampo Digital</h2><p>Repositório Universal Ativo</p></div><button type="button" className="btn-logout" onClick={handleLogout}>Sair</button></header>
-    <nav className="dashboard-tabs" aria-label="Navegação do repositório"><button type="button" className={aba === 'recentes' ? 'tab-active' : ''} onClick={() => { setAba('recentes'); setMateriaSelecionada(null); }}>Recentes</button><button type="button" className={aba === 'materias' ? 'tab-active' : ''} onClick={() => { setAba('materias'); setMateriaSelecionada(null); }}>Minhas Matérias</button></nav>
-    {aba === 'recentes' ? <>
     <h3 className="section-title">Adicionar Novo Estímulo</h3>
     <div className="upload-subject"><label htmlFor="materia-upload">Nome da Matéria</label><input id="materia-upload" className="input-real" type="text" value={materiaUpload} onChange={(event) => setMateriaUpload(event.target.value)} list="materias-existentes" placeholder="Ex: Matemática, Biologia" /><datalist id="materias-existentes">{nomesMaterias.map((nome) => <option value={nome} key={nome} />)}</datalist><p>Essa matéria será usada nos uploads de foto, áudio e documento.</p></div>
     <div className="grid-container">
@@ -295,7 +292,7 @@ export default function Home() {
     </div>
     <h3 className="section-title">Revisão Recente</h3>
     {materias.map((materia, index) => <Materia key={`${materia.criadaEm}-${index}`} materia={materia} excluir={excluirMaterial} />)}
-    </> : <Albumes materias={materias} selecionada={materiaSelecionada} selecionar={setMateriaSelecionada} excluir={excluirMaterial} />}
+    <Albumes materias={materias} selecionada={materiaSelecionada} selecionar={setMateriaSelecionada} excluir={excluirMaterial} />
     <input ref={fotoInput} className="file-input" type="file" accept="image/*" onChange={(event) => lerArquivo(event, 'foto')} />
     <input ref={documentoInput} className="file-input" type="file" accept="application/pdf,.pdf,.doc,.docx" onChange={(event) => lerArquivo(event, 'documento')} />
     {modal && <Modal tipo={modal} form={form} setForm={setForm} fechar={() => { if (!salvandoFoto) { setModal(null); setFotoPendente(null); } }} salvar={modal === 'link' ? salvarLink : modal === 'foto' ? salvarFoto : salvarMateria} foto={fotoPendente} salvando={salvandoFoto} />}
