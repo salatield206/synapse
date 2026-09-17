@@ -4,6 +4,22 @@ import { signIn, signOut, useSession } from 'next-auth/react';
 import { useEffect, useRef, useState } from 'react';
 
 const STORAGE_KEY = 'synapse-materias';
+const SENHA_FRACA_MENSAGEM = 'Senha muito fraca. Por favor, não utilize sequências fáceis de números ou letras.';
+
+function senhaTemSequenciaFacil(senha) {
+  const valor = senha.toLowerCase();
+  const padroesTeclado = ['qwerty', 'asdfgh', 'zxcvbn', 'qwertz', 'azerty'];
+  if (padroesTeclado.some((padrao) => valor.includes(padrao))) return true;
+
+  for (let indice = 0; indice <= valor.length - 4; indice += 1) {
+    const trecho = valor.slice(indice, indice + 4);
+    const crescente = trecho.split('').every((caractere, posicao) => posicao === 0 || caractere.charCodeAt(0) === trecho.charCodeAt(posicao - 1) + 1);
+    const decrescente = trecho.split('').every((caractere, posicao) => posicao === 0 || caractere.charCodeAt(0) === trecho.charCodeAt(posicao - 1) - 1);
+    if (crescente || decrescente) return true;
+  }
+
+  return false;
+}
 
 async function comprimirImagem(arquivo) {
   const imagem = await createImageBitmap(arquivo);
@@ -41,6 +57,7 @@ export default function Home() {
   const [nomeCadastro, setNomeCadastro] = useState('');
   const [emailCadastro, setEmailCadastro] = useState('');
   const [senhaCadastro, setSenhaCadastro] = useState('');
+  const [erroSenhaCadastro, setErroSenhaCadastro] = useState('');
   const [loading, setLoading] = useState(false);
   const [erroLogin, setErroLogin] = useState('');
   const [form, setForm] = useState({ titulo: '', texto: '', url: '', materia: '' });
@@ -55,6 +72,13 @@ export default function Home() {
       if (Array.isArray(salvas)) setMaterias(salvas);
     } catch { setMaterias([]); }
   }, []);
+
+  useEffect(() => {
+    const senhaFraca = Boolean(senhaCadastro) && senhaTemSequenciaFacil(senhaCadastro);
+    setErroSenhaCadastro(senhaFraca ? SENHA_FRACA_MENSAGEM : '');
+    document.body.classList.toggle('cadastro-senha-fraca', senhaFraca && !isLogin);
+    return () => document.body.classList.remove('cadastro-senha-fraca');
+  }, [senhaCadastro, isLogin]);
 
   async function acessarHub(event) {
     event.preventDefault();
@@ -71,6 +95,12 @@ export default function Home() {
 
   async function handleRegister(event) {
     event.preventDefault();
+    if (senhaTemSequenciaFacil(senhaCadastro)) {
+      setErroSenhaCadastro(SENHA_FRACA_MENSAGEM);
+      return;
+    }
+
+    setErroSenhaCadastro('');
     setLoading(true);
 
     try {
