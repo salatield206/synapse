@@ -75,6 +75,38 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
+    if (status === 'unauthenticated') {
+      localStorage.removeItem(STORAGE_KEY);
+      setMaterias([]);
+    } else if (status === 'authenticated') {
+      fetch('/api/materials')
+        .then((res) => res.json())
+        .then((dados) => {
+          if (Array.isArray(dados)) {
+            const materiasMapeadas = dados.map(item => {
+              const base = {
+                id: item.id,
+                tipo: item.tipo,
+                materia: item.materia,
+                titulo: item.titulo,
+                criadaEm: item.data || new Date().toISOString()
+              };
+              if (item.tipo === 'escrito') base.texto = item.conteudo;
+              else if (item.tipo === 'link') base.url = item.conteudo;
+              else if (item.tipo === 'foto') base.imagem = item.conteudo;
+              else if (item.tipo === 'audio') base.audio = item.conteudo;
+              else if (item.tipo === 'documento') base.arquivo = item.conteudo;
+              return base;
+            });
+            setMaterias(materiasMapeadas);
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(materiasMapeadas));
+          }
+        })
+        .catch(console.error);
+    }
+  }, [status]);
+
+  useEffect(() => {
     const senhaFraca = Boolean(senhaCadastro) && senhaTemSequenciaFacil(senhaCadastro);
     setErroSenhaCadastro(senhaFraca ? SENHA_FRACA_MENSAGEM : '');
     document.body.classList.toggle('cadastro-senha-fraca', senhaFraca && !isLogin);
@@ -137,6 +169,7 @@ export default function Home() {
     }
 
     try {
+      localStorage.removeItem(STORAGE_KEY);
       await signOut({ callbackUrl: '/' });
     } catch (error) {
       console.error('Não foi possível encerrar a sessão:', error);

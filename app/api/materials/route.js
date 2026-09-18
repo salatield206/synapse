@@ -36,3 +36,29 @@ export async function POST(request) {
     return NextResponse.json({ message: 'Não foi possível salvar o material.' }, { status: 500 });
   }
 }
+
+export async function GET(request) {
+  const session = await getServerSession(authOptions);
+  if (!session || !session.user) {
+    return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
+  }
+
+  const userId = session.user.id;
+  if (!userId) {
+    return NextResponse.json({ error: 'Sessão sem identificador de usuário' }, { status: 401 });
+  }
+
+  try {
+    const sql = getDb();
+    const materiais = await sql`
+      SELECT id, user_id, materia, tipo, titulo, conteudo, data
+      FROM materials
+      WHERE user_id = ${userId}
+      ORDER BY data DESC
+    `;
+    return NextResponse.json(materiais, { status: 200 });
+  } catch (error) {
+    console.error('Erro ao buscar materiais:', error);
+    return NextResponse.json({ message: 'Não foi possível buscar os materiais.' }, { status: 500 });
+  }
+}
