@@ -3,6 +3,7 @@ module.exports = {
   theme: {
     extend: {
       colors: {
+        'synapse-soft-pink': '#FCF0F5',
         'synapse-bg': '#F3EDF7',
         'synapse-primary': '#835592',
         'synapse-secondary': '#F3A6C6',

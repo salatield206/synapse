@@ -13,5 +13,5 @@ export const viewport = {
 };
 
 export default function RootLayout({ children }) {
-  return <html lang="pt-BR"><body><Providers>{children}</Providers></body></html>;
+  return <html lang="pt-BR"><body className="bg-synapse-soft-pink text-synapse-text"><Providers>{children}</Providers></body></html>;
 }

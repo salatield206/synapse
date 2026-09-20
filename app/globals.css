@@ -1,6 +1,6 @@
 :root {
-  --bg-main: #F3EDF7;
-  --bg-card: #ffffff;
+  --bg-main: #FCF0F5;
+  --bg-card: #F3EDF7;
   --text-main: #2D1B33;
   --text-muted: #604c68;
   --primary: #835592;
@@ -11,6 +11,7 @@
   --danger-hover: #d27b85;
 }
 
+html { background: var(--bg-main); }
 body { background: var(--bg-main); color: var(--text-main); overflow-x: hidden; }
 
 .auth-toggle { display: block; width: 100%; margin-top: 14px; padding: 8px; background: transparent; border: 0; color: var(--primary-hover); font-size: 12px; cursor: pointer; }
@@ -42,7 +43,7 @@ input, textarea, select { font-size: 16px; }
 
 .file-pending { margin-bottom: 18px; color: var(--text-muted); font-size: 13px; overflow-wrap: anywhere; }
 .material-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
-.delete-material { flex: 0 0 auto; border: 1px solid var(--danger); border-radius: 6px; background: #fff5f6; color: var(--danger); padding: 6px 8px; cursor: pointer; font-size: 16px; line-height: 1; transition: all 0.2s; }
+.delete-material { flex: 0 0 auto; border: 1px solid var(--danger); border-radius: 6px; background: #FCE8F0; color: var(--danger); padding: 6px 8px; cursor: pointer; font-size: 16px; line-height: 1; transition: all 0.2s; }
 .delete-material:hover { background: var(--danger); color: #fff; }
 .delete-material:focus-visible { outline: 2px solid var(--danger); outline-offset: 2px; }
 
