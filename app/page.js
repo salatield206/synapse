@@ -46,10 +46,8 @@ export default function Home() {
   const [materias, setMaterias] = useState([]);
   const [materiaSelecionada, setMateriaSelecionada] = useState(null);
   const [modal, setModal] = useState(null);
-  const [gravando, setGravando] = useState(false);
   const [fotoPendente, setFotoPendente] = useState(null);
   const [documentoPendente, setDocumentoPendente] = useState(null);
-  const [audioPendente, setAudioPendente] = useState(null);
   const [salvandoFoto, setSalvandoFoto] = useState(false);
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
@@ -62,8 +60,6 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [erroLogin, setErroLogin] = useState('');
   const [form, setForm] = useState({ titulo: '', texto: '', url: '', materia: '' });
-  const gravador = useRef(null);
-  const partesAudio = useRef([]);
   const fotoInput = useRef(null);
   const documentoInput = useRef(null);
 
@@ -94,7 +90,6 @@ export default function Home() {
               if (item.tipo === 'escrito') base.texto = item.conteudo;
               else if (item.tipo === 'link') base.url = item.conteudo;
               else if (item.tipo === 'foto') base.imagem = item.conteudo;
-              else if (item.tipo === 'audio') base.audio = item.conteudo;
               else if (item.tipo === 'documento') base.arquivo = item.conteudo;
               return base;
             });
@@ -162,7 +157,7 @@ export default function Home() {
 
   async function handleLogout() {
     const preenchendoMateria = Object.values(form).some((valor) => valor.trim());
-    const temAlteracoesNaoSalvas = modal !== null || preenchendoMateria || gravando;
+    const temAlteracoesNaoSalvas = modal !== null || preenchendoMateria;
 
     if (temAlteracoesNaoSalvas && !window.confirm('Você tem alterações não salvas. Tem certeza que deseja sair?')) {
       return;
@@ -195,7 +190,7 @@ export default function Home() {
           materia: material.materia,
           tipo: material.tipo,
           titulo: material.titulo,
-          conteudo: material.texto || material.url || material.arquivo || material.imagem || material.audio
+          conteudo: material.texto || material.url || material.arquivo || material.imagem
         })
       });
       if (!resposta.ok) {
@@ -269,30 +264,6 @@ export default function Home() {
     alert('Salvo com sucesso');
   }
 
-  async function salvarAudio(event) {
-    event.preventDefault();
-    if (!audioPendente) return;
-
-    const novoMaterial = {
-      tipo: 'audio',
-      materia: form.materia.trim() || 'Geral',
-      titulo: form.titulo.trim() || audioPendente.titulo,
-      audio: audioPendente.audio,
-      criadaEm: new Date().toISOString()
-    };
-    const salvo = await salvarMaterialNoBanco(novoMaterial);
-    if (!salvo) {
-      alert('Não foi possível salvar o áudio.');
-      return;
-    }
-
-    atualizarMaterias([{ ...novoMaterial, id: salvo.id }, ...materias]);
-    setAudioPendente(null);
-    setForm({ titulo: '', texto: '', url: '', materia: '' });
-    setModal(null);
-    alert('Salvo com sucesso');
-  }
-
   async function excluirMaterial(material) {
     if (!window.confirm('Tem certeza que deseja excluir este material permanentemente?')) return;
 
@@ -341,30 +312,6 @@ export default function Home() {
     setModal('link');
   }
 
-  async function alternarGravacao() {
-    if (gravador.current?.state === 'recording') { gravador.current.stop(); return; }
-    if (!navigator.mediaDevices || !window.MediaRecorder) return alert('Seu navegador não oferece suporte à gravação de áudio.');
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      partesAudio.current = [];
-      gravador.current = new MediaRecorder(stream);
-      gravador.current.ondataavailable = (event) => { if (event.data.size) partesAudio.current.push(event.data); };
-      gravador.current.onstop = () => {
-        const leitor = new FileReader();
-        leitor.onloadend = () => {
-          setAudioPendente({ titulo: 'Nova matéria em áudio', audio: leitor.result });
-          setForm({ titulo: 'Nova matéria em áudio', texto: '', url: '', materia: '' });
-          setModal('audio');
-        };
-        leitor.readAsDataURL(new Blob(partesAudio.current, { type: gravador.current.mimeType || 'audio/webm' }));
-        stream.getTracks().forEach((track) => track.stop());
-        setGravando(false);
-      };
-      gravador.current.start();
-      setGravando(true);
-    } catch { alert('Não foi possível acessar o microfone. Verifique a permissão do navegador.'); }
-  }
-
   async function lerArquivo(event, tipo) {
     const arquivo = event.target.files?.[0];
     if (!arquivo) return;
@@ -411,7 +358,6 @@ export default function Home() {
     <div className="grid-container">
       <button type="button" className="card" onClick={() => setModal('materia')}><span className="card-icon">📝</span><span>Matéria<br />Escrita</span></button>
       <button type="button" className="card" onClick={() => fotoInput.current.click()}><span className="card-icon">📷</span><span>Matéria<br />por Foto</span></button>
-      <button type="button" className={`card ${gravando ? 'gravando' : ''}`} onClick={alternarGravacao}><span className="card-icon">🎧</span><span>{gravando ? <>Parar<br />gravação</> : <>Matéria<br />por Áudio</>}</span></button>
       <button type="button" className="card" onClick={abrirModalLink}><span className="card-icon">🔗</span><span>Matéria<br />de Link</span></button>
       <button type="button" className="card full-width" onClick={() => documentoInput.current.click()}><span className="card-icon">📄</span><span>Matéria por Documento (PDF, Doc)</span></button>
     </div>
@@ -419,7 +365,7 @@ export default function Home() {
     {materias.map((materia, index) => <Materia key={`${materia.criadaEm}-${index}`} materia={materia} excluir={excluirMaterial} />)}
     <input ref={fotoInput} className="file-input" type="file" accept="image/*" onChange={(event) => lerArquivo(event, 'foto')} />
     <input ref={documentoInput} className="file-input" type="file" accept="application/pdf,.pdf,.doc,.docx" onChange={(event) => lerArquivo(event, 'documento')} />
-    {modal && <Modal tipo={modal} form={form} setForm={setForm} fechar={() => { if (!salvandoFoto) { setModal(null); setFotoPendente(null); setDocumentoPendente(null); setAudioPendente(null); } }} salvar={modal === 'link' ? salvarLink : modal === 'foto' ? salvarFoto : modal === 'documento' ? salvarDocumento : modal === 'audio' ? salvarAudio : salvarMateria} foto={fotoPendente} documento={documentoPendente} salvando={salvandoFoto} />}
+    {modal && <Modal tipo={modal} form={form} setForm={setForm} fechar={() => { if (!salvandoFoto) { setModal(null); setFotoPendente(null); setDocumentoPendente(null); } }} salvar={modal === 'link' ? salvarLink : modal === 'foto' ? salvarFoto : modal === 'documento' ? salvarDocumento : salvarMateria} foto={fotoPendente} documento={documentoPendente} salvando={salvandoFoto} />}
   </main>;
 }
 
@@ -432,8 +378,8 @@ function EyeOffIcon() {
 }
 
 function Materia({ materia, excluir }) {
-  const descricao = { foto: 'Matéria por foto', audio: 'Matéria por áudio', link: 'Link de estudos', documento: 'Documento', escrito: 'Matéria escrita' }[materia.tipo];
-  return <article className="list-item saved-item"><div className="material-heading"><div><div className="li-title">{materia.titulo}</div><div className="li-desc">{materia.materia || 'Sem matéria'} • {descricao} • {new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short', timeStyle: 'short' }).format(new Date(materia.criadaEm))}</div></div><button type="button" className="delete-material" onClick={() => excluir(materia)} aria-label={`Excluir ${materia.titulo}`} title="Excluir material">🗑️</button></div>{materia.tipo === 'foto' && <img className="materia-foto" src={materia.imagem} alt={materia.titulo} />}{materia.tipo === 'audio' && <audio className="materia-audio" controls src={materia.audio} />}{materia.tipo === 'link' && <a className="materia-link" href={materia.url}>Abrir material de estudos</a>}{materia.tipo === 'documento' && <a className="materia-link" href={materia.arquivo} download={materia.titulo}>Baixar documento</a>}{materia.tipo === 'escrito' && <div className="li-content">{materia.texto}</div>}</article>;
+  const descricao = { foto: 'Matéria por foto', link: 'Link de estudos', documento: 'Documento', escrito: 'Matéria escrita' }[materia.tipo];
+  return <article className="list-item saved-item"><div className="material-heading"><div><div className="li-title">{materia.titulo}</div><div className="li-desc">{materia.materia || 'Sem matéria'} • {descricao} • {new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short', timeStyle: 'short' }).format(new Date(materia.criadaEm))}</div></div><button type="button" className="delete-material" onClick={() => excluir(materia)} aria-label={`Excluir ${materia.titulo}`} title="Excluir material">🗑️</button></div>{materia.tipo === 'foto' && <img className="materia-foto" src={materia.imagem} alt={materia.titulo} />}{materia.tipo === 'link' && <a className="materia-link" href={materia.url}>Abrir material de estudos</a>}{materia.tipo === 'documento' && <a className="materia-link" href={materia.arquivo} download={materia.titulo}>Baixar documento</a>}{materia.tipo === 'escrito' && <div className="li-content">{materia.texto}</div>}</article>;
 }
 
 function Albumes({ materias, selecionada, selecionar, excluir }) {
@@ -454,5 +400,5 @@ function Albumes({ materias, selecionada, selecionar, excluir }) {
 }
 
 function Modal({ tipo, form, setForm, fechar, salvar, foto, documento, salvando }) {
-  return <div className="modal active"><div className="modal-content"><div className="modal-header"><h2>{tipo === 'link' ? 'Salvar link de estudos' : tipo === 'foto' ? 'Salvar foto' : tipo === 'documento' ? 'Salvar documento' : tipo === 'audio' ? 'Salvar áudio' : 'Escrever matéria'}</h2><button type="button" className="modal-close" onClick={fechar} disabled={salvando}>&times;</button></div><form onSubmit={salvar}>{tipo === 'foto' && foto && <img className="foto-preview" src={foto.imagem} alt="Pré-visualização da foto" />}{tipo === 'documento' && documento && <p className="file-pending">Arquivo selecionado: {documento.titulo}</p>}{tipo === 'audio' && <p className="file-pending">Áudio gravado pronto para salvar</p>}<div className="input-group"><label>Nome da Matéria</label><input className="input-real" value={form.materia} onChange={(event) => setForm({ ...form, materia: event.target.value })} placeholder="Ex: Matemática, Biologia" required /></div><div className="input-group"><label>Título</label><input className="input-real" value={form.titulo} onChange={(event) => setForm({ ...form, titulo: event.target.value })} required /></div>{tipo === 'link' ? <div className="input-group"><label>Link de estudos</label><input className="input-real" type="url" value={form.url} onChange={(event) => setForm({ ...form, url: event.target.value })} required /></div> : tipo !== 'foto' && tipo !== 'documento' && tipo !== 'audio' && <div className="input-group"><label>Texto</label><textarea className="input-real textarea-real" value={form.texto} onChange={(event) => setForm({ ...form, texto: event.target.value })} required /></div>}<button className="btn-primary" type="submit" disabled={salvando}>{salvando ? 'Carregando...' : 'Salvar'}</button></form></div></div>;
+  return <div className="modal active"><div className="modal-content"><div className="modal-header"><h2>{tipo === 'link' ? 'Salvar link de estudos' : tipo === 'foto' ? 'Salvar foto' : tipo === 'documento' ? 'Salvar documento' : 'Escrever matéria'}</h2><button type="button" className="modal-close" onClick={fechar} disabled={salvando}>&times;</button></div><form onSubmit={salvar}>{tipo === 'foto' && foto && <img className="foto-preview" src={foto.imagem} alt="Pré-visualização da foto" />}{tipo === 'documento' && documento && <p className="file-pending">Arquivo selecionado: {documento.titulo}</p>}<div className="input-group"><label>Nome da Matéria</label><input className="input-real" value={form.materia} onChange={(event) => setForm({ ...form, materia: event.target.value })} placeholder="Ex: Matemática, Biologia" required /></div><div className="input-group"><label>Título</label><input className="input-real" value={form.titulo} onChange={(event) => setForm({ ...form, titulo: event.target.value })} required /></div>{tipo === 'link' ? <div className="input-group"><label>Link de estudos</label><input className="input-real" type="url" value={form.url} onChange={(event) => setForm({ ...form, url: event.target.value })} required /></div> : tipo !== 'foto' && tipo !== 'documento' && <div className="input-group"><label>Texto</label><textarea className="input-real textarea-real" value={form.texto} onChange={(event) => setForm({ ...form, texto: event.target.value })} required /></div>}<button className="btn-primary" type="submit" disabled={salvando}>{salvando ? 'Carregando...' : 'Salvar'}</button></form></div></div>;
 }

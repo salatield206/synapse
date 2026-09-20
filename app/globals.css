@@ -76,15 +76,12 @@ input, textarea, select { font-size: 16px; }
 .card:hover { border-color: var(--primary); transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0,0,0,0.05); }
 .card.full-width { flex-basis: 100%; padding: 15px 10px; }
 .card-icon { display: block; color: var(--secondary); font-size: 26px; margin-bottom: 10px; }
-.card.gravando { background: #ffe5e5; border-color: var(--danger); animation: pulse 1.2s infinite; color: var(--danger); }
-@keyframes pulse { 50% { box-shadow: 0 0 0 5px rgba(226, 144, 154, 0.3); } }
 
 .list-item { background: var(--bg-card); border-left: 4px solid var(--primary); padding: 12px 15px; margin-bottom: 12px; border-radius: 4px 8px 8px 4px; border-top: 1px solid var(--border); border-right: 1px solid var(--border); border-bottom: 1px solid var(--border); box-shadow: 0 2px 6px rgba(0,0,0,0.02); }
 .li-title { font-size: 14px; font-weight: bold; margin-bottom: 4px; color: var(--text-main); }
 .li-content { font-size: 13px; color: var(--text-main); line-height: 1.5; margin-top: 10px; white-space: pre-wrap; overflow-wrap: anywhere; }
 
 .materia-foto { display: block; width: 100%; max-height: 300px; object-fit: contain; margin-top: 10px; border-radius: 8px; border: 1px solid var(--border); }
-.materia-audio { width: 100%; margin-top: 10px; }
 .materia-link { display: inline-block; margin-top: 10px; color: var(--primary-hover); font-size: 13px; font-weight: bold; }
 
 .file-input { display: none; }
@@ -94,3 +91,4 @@ input, textarea, select { font-size: 16px; }
 .modal-close { border: 0; background: transparent; color: var(--text-muted); font-size: 30px; cursor: pointer; transition: color 0.2s; }
 .modal-close:hover { color: var(--danger); }
 .textarea-real { min-height: 150px; resize: vertical; line-height: 1.5; }
+.logo-container p { display: none; }
