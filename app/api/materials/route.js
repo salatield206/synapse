@@ -15,7 +15,9 @@ export async function POST(request) {
   }
 
   try {
-    const { materia, tipo, titulo, conteudo, parentId } = await request.json();
+    const payload = await request.json();
+    const { materia, tipo, titulo, conteudo } = payload;
+    const parentId = payload.parentId ?? payload.parent_id ?? null;
     const materiaNormalizada = materia?.trim() || 'Geral';
     const tituloNormalizado = titulo?.trim();
 

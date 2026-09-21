@@ -325,17 +325,32 @@ export default function Home() {
     if (!titulo) return;
 
     try {
+      const parentIdNormalizado = parentId ?? null;
       const resposta = await fetch('/api/materials', {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ tipo: 'pasta', titulo, materia: titulo, parentId: parentId || null })
+        body: JSON.stringify({ tipo: 'pasta', titulo, materia: titulo, parentId: parentIdNormalizado })
       });
-      if (!resposta.ok) throw new Error('Não foi possível criar a subpasta.');
-      const pasta = await resposta.json();
-      const pastaMapeada = { id: pasta.id, tipo: 'pasta', materia: pasta.materia, titulo: pasta.titulo, parentId: pasta.parent_id || null, criadaEm: pasta.data || new Date().toISOString() };
-      atualizarMaterias([pastaMapeada, ...materias]);
+      const dados = await resposta.json().catch(() => ({}));
+      if (!resposta.ok) {
+        throw new Error(dados.message || dados.error || 'Não foi possível criar a pasta.');
+      }
+      const pastaMapeada = {
+        id: dados.id,
+        tipo: 'pasta',
+        materia: dados.materia || dados.titulo,
+        titulo: dados.titulo || titulo,
+        parentId: dados.parent_id ?? dados.parentId ?? parentIdNormalizado,
+        criadaEm: dados.data || new Date().toISOString()
+      };
+      setMaterias((atuais) => {
+        const atualizadas = [pastaMapeada, ...atuais.filter((item) => item.id !== pastaMapeada.id)];
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(atualizadas));
+        return atualizadas;
+      });
     } catch (error) {
+      console.error('Erro ao criar pasta:', error);
       alert(error.message || 'Não foi possível criar a subpasta.');
     }
   }
