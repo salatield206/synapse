@@ -40,6 +40,7 @@ export async function POST(request) {
 
     return NextResponse.json(material, { status: 201 });
   } catch (error) {
+    console.log(error);
     console.error('Erro ao salvar material:', error);
     return NextResponse.json({ message: 'Não foi possível salvar o material.' }, { status: 500 });
   }
