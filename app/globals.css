@@ -61,7 +61,8 @@ input, textarea, select { font-size: 16px; }
 
 .screen { min-height: 100vh; padding: 30px 25px; animation: fadeIn .4s ease-out; }
 .dashboard { padding-bottom: 80px; }
-.home-actions { min-height: 55vh; display: grid; place-content: center; justify-items: center; gap: 14px; text-align: center; }
+.home-create { max-width: 980px; margin: 0 auto; }
+.home-actions { min-height: 30vh; display: grid; place-content: center; justify-items: center; gap: 14px; text-align: center; }
 .home-actions-copy { color: var(--text-muted); font-size: 14px; }
 .btn-materias { display: inline-flex; align-items: center; gap: 10px; border: 1px solid var(--primary); border-radius: 10px; background: var(--primary); color: #fff; padding: 16px 24px; font-size: 14px; font-weight: bold; cursor: pointer; box-shadow: 0 8px 18px rgba(131, 85, 146, 0.2); transition: transform .2s ease, background .2s ease; }
 .btn-materias:hover { background: var(--primary-hover); transform: translateY(-2px); }
