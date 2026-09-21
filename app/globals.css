@@ -87,24 +87,32 @@ input, textarea, select { font-size: 16px; }
 .file-input { display: none; }
 .modal { position: fixed; inset: 0; z-index: 10; display: flex; align-items: center; justify-content: center; padding: 20px; background: rgba(0, 0, 0, 0.4); backdrop-filter: blur(3px); }
 .modal-content { width: min(100%, 480px); padding: 25px; background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; box-shadow: 0 10px 40px rgba(0,0,0,0.1); }
-.modal-document-editor .modal-content { width: min(100%, 960px); max-height: calc(100vh - 40px); overflow-y: auto; }
+.modal-document-editor { align-items: flex-start; overflow-y: auto; padding: 20px 14px 40px; }
+.modal-document-editor .modal-content { width: min(100%, 1120px); max-height: none; overflow: visible; background: var(--bg-main); }
 .modal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 25px; }
 .modal-close { border: 0; background: transparent; color: var(--text-muted); font-size: 30px; cursor: pointer; transition: color 0.2s; }
 .modal-close:hover { color: var(--danger); }
 .textarea-real { min-height: 150px; resize: vertical; line-height: 1.5; }
-.rich-editor { overflow: hidden; border: 1px solid var(--border); border-radius: 10px; background: var(--bg-main); }
-.rich-editor-toolbar { display: flex; flex-wrap: wrap; gap: 6px; padding: 10px; border-bottom: 1px solid var(--border); background: var(--bg-card); }
+.materia-new-input { margin-top: 8px; }
+.rich-editor { overflow: visible; border: 1px solid var(--border); border-radius: 10px; background: var(--bg-main); }
+.rich-editor-toolbar { position: sticky; top: 0; z-index: 2; display: flex; flex-wrap: wrap; gap: 6px; padding: 10px; border-bottom: 1px solid var(--border); background: var(--bg-card); box-shadow: 0 2px 8px rgba(45, 27, 51, 0.08); }
 .editor-tool { border: 1px solid var(--border); border-radius: 6px; background: var(--bg-main); color: var(--text-main); padding: 7px 10px; cursor: pointer; font-size: 12px; font-weight: bold; }
 .editor-tool:hover, .editor-tool.active { background: var(--primary); border-color: var(--primary); color: #fff; }
-.rich-editor-content { min-height: 360px; padding: 24px; outline: none; color: var(--text-main); line-height: 1.7; }
+.editor-select, .editor-color { min-height: 32px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg-main); color: var(--text-main); padding: 6px 8px; font-size: 12px; font-weight: bold; }
+.editor-color { display: inline-flex; align-items: center; gap: 6px; }
+.editor-color input { width: 22px; height: 22px; padding: 0; border: 0; background: transparent; cursor: pointer; }
+.rich-editor-content { width: 210mm; max-width: 100%; min-height: 297mm; margin: 24px auto; padding: 22mm 20mm; outline: none; background: #fff; color: var(--text-main); line-height: 1.7; box-shadow: 0 10px 24px rgba(45, 27, 51, 0.16); }
 .rich-editor-content p.is-editor-empty:first-child::before { color: var(--text-muted); content: 'Escreva o conteúdo do seu documento...'; float: left; height: 0; pointer-events: none; }
 .rich-editor-content h1, .rich-editor-content h2, .rich-editor-content h3 { color: var(--text-main); line-height: 1.25; margin: 18px 0 8px; }
 .rich-editor-content h1 { font-size: 28px; }
 .rich-editor-content h2 { font-size: 23px; }
 .rich-editor-content h3 { font-size: 19px; }
 .rich-editor-content ul, .rich-editor-content ol { padding-left: 24px; margin: 10px 0; }
+.rich-editor-content p[style*="text-align: center"], .rich-editor-content h1[style*="text-align: center"], .rich-editor-content h2[style*="text-align: center"], .rich-editor-content h3[style*="text-align: center"] { text-align: center; }
 .rich-content { overflow-wrap: anywhere; }
 .rich-content h1, .rich-content h2, .rich-content h3 { color: var(--text-main); line-height: 1.25; margin: 12px 0 6px; }
 .rich-content ul, .rich-content ol { padding-left: 24px; margin: 8px 0; }
 .rich-editor-loading { min-height: 360px; display: grid; place-items: center; color: var(--text-muted); }
+.rich-content p[style], .rich-content h1[style], .rich-content h2[style], .rich-content h3[style] { color: inherit; }
+@media (max-width: 700px) { .modal-document-editor { padding: 8px; } .modal-document-editor .modal-content { padding: 14px; } .rich-editor-content { width: 100%; min-height: 680px; margin: 14px auto; padding: 18mm 14mm; } .rich-editor-toolbar { top: -1px; } }
 .logo-container p { display: none; }

@@ -1,23 +1,36 @@
 'use client';
 
+import { Extension } from '@tiptap/core';
 import { EditorContent, useEditor } from '@tiptap/react';
+import Color from '@tiptap/extension-color';
 import StarterKit from '@tiptap/starter-kit';
+import TextAlign from '@tiptap/extension-text-align';
+import { TextStyle } from '@tiptap/extension-text-style';
 import Underline from '@tiptap/extension-underline';
 
-const toolbarItems = [
-  { label: 'Título 1', action: (editor) => editor.chain().focus().toggleHeading({ level: 1 }).run(), active: (editor) => editor.isActive('heading', { level: 1 }) },
-  { label: 'Título 2', action: (editor) => editor.chain().focus().toggleHeading({ level: 2 }).run(), active: (editor) => editor.isActive('heading', { level: 2 }) },
-  { label: 'Título 3', action: (editor) => editor.chain().focus().toggleHeading({ level: 3 }).run(), active: (editor) => editor.isActive('heading', { level: 3 }) },
-  { label: 'Negrito', action: (editor) => editor.chain().focus().toggleBold().run(), active: (editor) => editor.isActive('bold') },
-  { label: 'Itálico', action: (editor) => editor.chain().focus().toggleItalic().run(), active: (editor) => editor.isActive('italic') },
-  { label: 'Sublinhado', action: (editor) => editor.chain().focus().toggleUnderline().run(), active: (editor) => editor.isActive('underline') },
-  { label: 'Lista', action: (editor) => editor.chain().focus().toggleBulletList().run(), active: (editor) => editor.isActive('bulletList') },
-  { label: 'Lista numerada', action: (editor) => editor.chain().focus().toggleOrderedList().run(), active: (editor) => editor.isActive('orderedList') }
-];
+const FontSize = Extension.create({
+  name: 'fontSize',
+  addGlobalAttributes() {
+    return [{
+      types: ['textStyle'],
+      attributes: {
+        fontSize: {
+          default: null,
+          parseHTML: (element) => element.style.fontSize || null,
+          renderHTML: (attributes) => attributes.fontSize ? { style: `font-size: ${attributes.fontSize}` } : {}
+        }
+      }
+    }];
+  }
+});
+
+function ToolButton({ label, active, onClick }) {
+  return <button type="button" className={active ? 'editor-tool active' : 'editor-tool'} onClick={onClick} aria-label={label} title={label}>{label}</button>;
+}
 
 export default function RichTextEditor({ value, onChange }) {
   const editor = useEditor({
-    extensions: [StarterKit, Underline],
+    extensions: [StarterKit, Underline, TextStyle, Color, TextAlign.configure({ types: ['heading', 'paragraph'] }), FontSize],
     content: value || '',
     immediatelyRender: false,
     editorProps: {
@@ -30,16 +43,35 @@ export default function RichTextEditor({ value, onChange }) {
 
   if (!editor) return <div className="rich-editor-loading">A preparar o editor...</div>;
 
+  const setFontSize = (event) => {
+    const size = event.target.value;
+    const chain = editor.chain().focus();
+    if (size) chain.setMark('textStyle', { fontSize: size }).run();
+    else chain.unsetMark('textStyle').run();
+  };
+
+  const setTextColor = (event) => editor.chain().focus().setColor(event.target.value).run();
+
   return <div className="rich-editor">
     <div className="rich-editor-toolbar" aria-label="Ferramentas de formatação">
-      {toolbarItems.map((item) => <button
-        key={item.label}
-        type="button"
-        className={item.active(editor) ? 'editor-tool active' : 'editor-tool'}
-        onClick={() => item.action(editor)}
-        aria-label={item.label}
-        title={item.label}
-      >{item.label}</button>)}
+      <select className="editor-select" defaultValue="" onChange={setFontSize} aria-label="Tamanho da fonte">
+        <option value="">Tamanho</option><option value="12pt">12</option><option value="14pt">14</option><option value="16pt">16</option><option value="18pt">18</option><option value="24pt">24</option><option value="32pt">32</option>
+      </select>
+      <label className="editor-color" title="Cor do texto">Cor <input type="color" defaultValue="#2D1B33" onChange={setTextColor} aria-label="Cor do texto" /></label>
+      <ToolButton label="Título 1" active={editor.isActive('heading', { level: 1 })} onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()} />
+      <ToolButton label="Título 2" active={editor.isActive('heading', { level: 2 })} onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()} />
+      <ToolButton label="Título 3" active={editor.isActive('heading', { level: 3 })} onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()} />
+      <ToolButton label="Negrito" active={editor.isActive('bold')} onClick={() => editor.chain().focus().toggleBold().run()} />
+      <ToolButton label="Itálico" active={editor.isActive('italic')} onClick={() => editor.chain().focus().toggleItalic().run()} />
+      <ToolButton label="Sublinhado" active={editor.isActive('underline')} onClick={() => editor.chain().focus().toggleUnderline().run()} />
+      <ToolButton label="Alinhar à esquerda" active={editor.isActive({ textAlign: 'left' })} onClick={() => editor.chain().focus().setTextAlign('left').run()} />
+      <ToolButton label="Centralizar" active={editor.isActive({ textAlign: 'center' })} onClick={() => editor.chain().focus().setTextAlign('center').run()} />
+      <ToolButton label="Alinhar à direita" active={editor.isActive({ textAlign: 'right' })} onClick={() => editor.chain().focus().setTextAlign('right').run()} />
+      <ToolButton label="Justificar" active={editor.isActive({ textAlign: 'justify' })} onClick={() => editor.chain().focus().setTextAlign('justify').run()} />
+      <ToolButton label="Lista" active={editor.isActive('bulletList')} onClick={() => editor.chain().focus().toggleBulletList().run()} />
+      <ToolButton label="Lista numerada" active={editor.isActive('orderedList')} onClick={() => editor.chain().focus().toggleOrderedList().run()} />
+      <ToolButton label="Desfazer" onClick={() => editor.chain().focus().undo().run()} />
+      <ToolButton label="Refazer" onClick={() => editor.chain().focus().redo().run()} />
     </div>
     <EditorContent editor={editor} />
   </div>;
