@@ -47,7 +47,8 @@ export default function Home() {
   const { status } = useSession();
   const [materias, setMaterias] = useState([]);
   const [materiasAbertas, setMateriasAbertas] = useState(false);
-  const [pastaAtual, setPastaAtual] = useState(null);
+  const [currentFolderId, setCurrentFolderId] = useState(null);
+  const [breadcrumbs, setBreadcrumbs] = useState([{ id: null, name: 'Início' }]);
   const [modal, setModal] = useState(null);
   const [fotoPendente, setFotoPendente] = useState(null);
   const [documentoPendente, setDocumentoPendente] = useState(null);
@@ -226,7 +227,7 @@ export default function Home() {
       materia: form.materia.trim() || 'Geral',
       titulo: form.titulo.trim() || fotoPendente.titulo,
       imagem: fotoPendente.imagem,
-      parentId: pastaAtual,
+      parentId: currentFolderId,
       criadaEm: new Date().toISOString()
     };
 
@@ -255,7 +256,7 @@ export default function Home() {
       materia: form.materia.trim() || 'Geral',
       titulo: form.titulo.trim() || documentoPendente.titulo,
       arquivo: documentoPendente.arquivo,
-      parentId: pastaAtual,
+      parentId: currentFolderId,
       criadaEm: new Date().toISOString()
     };
     const salvo = await salvarMaterialNoBanco(novoMaterial);
@@ -298,7 +299,7 @@ export default function Home() {
 
   function salvarMateria(event) {
     event.preventDefault();
-    const novoMaterial = { tipo: 'escrito', materia: form.materia.trim() || 'Sem matéria', titulo: form.titulo.trim() || 'Documento sem título', texto: form.texto, parentId: pastaAtual, criadaEm: new Date().toISOString() };
+    const novoMaterial = { tipo: 'escrito', materia: form.materia.trim() || 'Sem matéria', titulo: form.titulo.trim() || 'Documento sem título', texto: form.texto, parentId: currentFolderId, criadaEm: new Date().toISOString() };
     atualizarMaterias([novoMaterial, ...materias]);
     void salvarMaterialNoBanco(novoMaterial);
     setForm({ titulo: '', texto: '', url: '', materia: '' });
@@ -307,7 +308,7 @@ export default function Home() {
 
   function salvarLink(event) {
     event.preventDefault();
-    const novoMaterial = { tipo: 'link', materia: form.materia.trim() || 'Sem matéria', titulo: form.titulo.trim(), url: form.url.trim(), parentId: pastaAtual, criadaEm: new Date().toISOString() };
+    const novoMaterial = { tipo: 'link', materia: form.materia.trim() || 'Sem matéria', titulo: form.titulo.trim(), url: form.url.trim(), parentId: currentFolderId, criadaEm: new Date().toISOString() };
     atualizarMaterias([novoMaterial, ...materias]);
     void salvarMaterialNoBanco(novoMaterial);
     setForm({ titulo: '', texto: '', url: '', materia: '' });
@@ -356,6 +357,22 @@ export default function Home() {
     }
   }
 
+  function navegarParaPasta(folderId) {
+    setCurrentFolderId(folderId);
+    if (!folderId) {
+      setBreadcrumbs([{ id: null, name: 'Início' }]);
+      return;
+    }
+
+    const caminho = [];
+      let pasta = materias.find((item) => item.id === folderId && item.tipo === 'pasta');
+    while (pasta) {
+      caminho.unshift({ id: pasta.id, name: pasta.titulo });
+      pasta = materias.find((item) => item.id === pasta.parentId && item.tipo === 'pasta');
+    }
+    setBreadcrumbs([{ id: null, name: 'Início' }, ...caminho]);
+  }
+
   async function lerArquivo(event, tipo) {
     const arquivo = event.target.files?.[0];
     if (!arquivo) return;
@@ -398,8 +415,8 @@ export default function Home() {
   return <main className="screen dashboard">
     <header className="dash-header"><div><h2>Hipocampo Digital</h2><p>Repositório Universal Ativo</p></div><button type="button" className="btn-logout" onClick={handleLogout}>Sair</button></header>
     <section className="home-create"><h3 className="section-title">Adicionar Novo Estímulo</h3><MaterialActions setModal={setModal} fotoInput={fotoInput} documentoInput={documentoInput} abrirModalLink={abrirModalLink} /></section>
-    {!materiasAbertas && <section className="home-actions"><p className="home-actions-copy">Acesse o seu acervo organizado por matérias e subpastas.</p><button type="button" className="btn-materias bg-synapse-primary text-white" onClick={() => { setMateriasAbertas(true); setPastaAtual(null); }}><span aria-hidden="true">📁</span> Acessar Matérias Criadas</button></section>}
-    {materiasAbertas && <section className="materias-explorer"><Albumes materias={materias} pastaAtual={pastaAtual} selecionar={setPastaAtual} criarSubpasta={criarSubpasta} excluir={excluirMaterial} renomear={renomearMaterial} onExit={() => { setMateriasAbertas(false); setPastaAtual(null); }} /></section>}
+    {!materiasAbertas && <section className="home-actions"><p className="home-actions-copy">Acesse o seu acervo organizado por matérias e subpastas.</p><button type="button" className="btn-materias bg-synapse-primary text-white" onClick={() => { setMateriasAbertas(true); navegarParaPasta(null); }}><span aria-hidden="true">📁</span> Acessar Matérias Criadas</button></section>}
+    {materiasAbertas && <section className="materias-explorer"><Albumes materias={materias} currentFolderId={currentFolderId} breadcrumbs={breadcrumbs} navegarParaPasta={navegarParaPasta} criarSubpasta={criarSubpasta} excluir={excluirMaterial} renomear={renomearMaterial} onExit={() => { setMateriasAbertas(false); navegarParaPasta(null); }} /></section>}
     <input ref={fotoInput} className="file-input" type="file" accept="image/*" onChange={(event) => lerArquivo(event, 'foto')} />
     <input ref={documentoInput} className="file-input" type="file" accept="application/pdf,.pdf,.doc,.docx" onChange={(event) => lerArquivo(event, 'documento')} />
     {modal && <Modal tipo={modal} form={form} setForm={setForm} materias={materias} fechar={() => { if (!salvandoFoto) { setModal(null); setFotoPendente(null); setDocumentoPendente(null); } }} salvar={modal === 'link' ? salvarLink : modal === 'foto' ? salvarFoto : modal === 'documento' ? salvarDocumento : salvarMateria} foto={fotoPendente} documento={documentoPendente} salvando={salvandoFoto} />}
@@ -421,17 +438,13 @@ function Materia({ materia, excluir, renomear }) {
   return <article className="drive-file-row"><div className="drive-file-main"><IconeArquivo size={20} strokeWidth={1.8} aria-hidden="true" /><div><div className="li-title">{materia.titulo}</div><div className="li-desc">{materia.materia || 'Sem matéria'} • {descricao} • {new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short', timeStyle: 'short' }).format(new Date(materia.criadaEm))}</div>{materia.tipo === 'foto' && <img className="materia-foto" src={materia.imagem} alt={materia.titulo} />}{materia.tipo === 'link' && <a className="materia-link" href={materia.url}>Abrir material de estudos</a>}{materia.tipo === 'documento' && <a className="materia-link" href={materia.arquivo} download={materia.titulo}>Baixar documento</a>}{materia.tipo === 'escrito' && <div className="li-content rich-content" dangerouslySetInnerHTML={{ __html: materia.texto }} />}</div></div><div className="drive-item-actions"><button type="button" className="drive-menu-button" onClick={() => setMenuAberto(!menuAberto)} aria-label={`Abrir opções de ${materia.titulo}`} title="Opções do arquivo"><MoreVertical size={18} /></button>{menuAberto && <div className="folder-popover drive-popover"><button type="button" onClick={() => { setMenuAberto(false); renomear(materia); }}><Pencil size={15} /> Renomear</button><button type="button" onClick={() => { setMenuAberto(false); excluir(materia); }}><Trash2 size={15} /> Excluir</button></div>}</div></article>;
 }
 
-function Albumes({ materias, pastaAtual, selecionar, criarSubpasta, excluir, renomear, onExit }) {
+function Albumes({ materias, currentFolderId, breadcrumbs, navegarParaPasta, criarSubpasta, excluir, renomear, onExit }) {
   const [menuAberto, setMenuAberto] = useState(null);
-  const pasta = materias.find((item) => item.id === pastaAtual && item.tipo === 'pasta');
-  const pastas = materias.filter((item) => item.tipo === 'pasta' && item.parentId === pastaAtual).sort((a, b) => a.titulo.localeCompare(b.titulo, 'pt-BR'));
-  const conteudos = pastaAtual === null ? [] : materias.filter((item) => item.tipo !== 'pasta' && item.parentId === pastaAtual);
-  const caminho = [];
-  let pastaDoCaminho = pasta;
-  while (pastaDoCaminho) {
-    caminho.unshift(pastaDoCaminho);
-    pastaDoCaminho = materias.find((item) => item.id === pastaDoCaminho.parentId && item.tipo === 'pasta');
-  }
+  const pasta = materias.find((item) => item.id === currentFolderId && item.tipo === 'pasta');
+  const pastas = materias.filter((item) => item.tipo === 'pasta' && item.parentId === currentFolderId).sort((a, b) => a.titulo.localeCompare(b.titulo, 'pt-BR'));
+  const conteudos = currentFolderId === null ? [] : materias.filter((item) => item.tipo !== 'pasta' && item.parentId === currentFolderId);
+  const selecionar = navegarParaPasta;
+  const caminho = breadcrumbs.slice(1).map((item) => ({ id: item.id, titulo: item.name }));
 
   return <section className="albums-view"><nav className="drive-breadcrumbs" aria-label="Caminho de navegação"><button type="button" onClick={onExit}><HomeIcon size={16} /> Início</button><ChevronRight size={15} /><button type="button" onClick={() => selecionar(null)}>Minhas Matérias</button>{caminho.map((item) => <span className="breadcrumb-level" key={item.id}><ChevronRight size={15} /><button type="button" onClick={() => selecionar(item.id)}>{item.titulo}</button></span>)}</nav><div className="drive-heading"><div><h3>{pasta ? pasta.titulo : 'Minhas Matérias'}</h3><p>{pasta ? 'Pastas e arquivos nesta matéria.' : 'Organize as suas matérias como no Google Drive.'}</p></div><button type="button" className="drive-new-folder" onClick={() => criarSubpasta(pasta?.id || null)}><FolderPlus size={17} /> Nova pasta</button></div>{pastas.length > 0 && <div className="drive-folder-grid">{pastas.map((item) => <div className="drive-folder-card bg-white rounded-lg" key={item.id}><button type="button" className="drive-folder-main" onClick={() => selecionar(item.id)}><Folder size={22} fill="currentColor" /><span>{item.titulo}</span></button><button type="button" className="drive-menu-button" onClick={() => setMenuAberto(menuAberto === item.id ? null : item.id)} aria-label={`Abrir opções de ${item.titulo}`} title="Opções da pasta"><MoreVertical size={18} /></button>{menuAberto === item.id && <div className="folder-popover drive-popover"><button type="button" onClick={() => { setMenuAberto(null); criarSubpasta(item.id); }}><FolderPlus size={15} /> Nova Subpasta</button><button type="button" onClick={() => { setMenuAberto(null); renomear(item); }}><Pencil size={15} /> Renomear</button><button type="button" onClick={() => { setMenuAberto(null); excluir(item); }}><Trash2 size={15} /> Excluir</button></div>}</div>)}</div>}{conteudos.length > 0 && <section className="drive-files"><h4><FileText size={17} /> Arquivos</h4>{conteudos.map((material, index) => <Materia key={`${material.id || material.criadaEm}-${index}`} materia={material} excluir={excluir} renomear={renomear} />)}</section>}{!pastas.length && !conteudos.length && <p className="empty-state">Nenhuma pasta ou material aqui.</p>}</section>;
 }
