@@ -425,7 +425,7 @@ function Albumes({ materias, pastaAtual, selecionar, criarSubpasta, excluir, ren
   const [menuAberto, setMenuAberto] = useState(null);
   const pasta = materias.find((item) => item.id === pastaAtual && item.tipo === 'pasta');
   const pastas = materias.filter((item) => item.tipo === 'pasta' && item.parentId === pastaAtual).sort((a, b) => a.titulo.localeCompare(b.titulo, 'pt-BR'));
-  const conteudos = materias.filter((item) => item.tipo !== 'pasta' && item.parentId === pastaAtual);
+  const conteudos = pastaAtual === null ? [] : materias.filter((item) => item.tipo !== 'pasta' && item.parentId === pastaAtual);
   const caminho = [];
   let pastaDoCaminho = pasta;
   while (pastaDoCaminho) {
