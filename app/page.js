@@ -45,7 +45,8 @@ async function comprimirImagem(arquivo) {
 export default function Home() {
   const { status } = useSession();
   const [materias, setMaterias] = useState([]);
-  const [materiaSelecionada, setMateriaSelecionada] = useState(null);
+  const [materiasAbertas, setMateriasAbertas] = useState(false);
+  const [pastaAtual, setPastaAtual] = useState(null);
   const [modal, setModal] = useState(null);
   const [fotoPendente, setFotoPendente] = useState(null);
   const [documentoPendente, setDocumentoPendente] = useState(null);
@@ -86,6 +87,7 @@ export default function Home() {
                 tipo: item.tipo,
                 materia: item.materia,
                 titulo: item.titulo,
+                parentId: item.parent_id || null,
                 criadaEm: item.data || new Date().toISOString()
               };
               if (item.tipo === 'escrito') base.texto = item.conteudo;
@@ -191,7 +193,8 @@ export default function Home() {
           materia: material.materia,
           tipo: material.tipo,
           titulo: material.titulo,
-          conteudo: material.texto || material.url || material.arquivo || material.imagem
+          conteudo: material.texto || material.url || material.arquivo || material.imagem,
+          parentId: material.parentId || null
         })
       });
       if (!resposta.ok) {
@@ -222,6 +225,7 @@ export default function Home() {
       materia: form.materia.trim() || 'Geral',
       titulo: form.titulo.trim() || fotoPendente.titulo,
       imagem: fotoPendente.imagem,
+      parentId: pastaAtual,
       criadaEm: new Date().toISOString()
     };
 
@@ -250,6 +254,7 @@ export default function Home() {
       materia: form.materia.trim() || 'Geral',
       titulo: form.titulo.trim() || documentoPendente.titulo,
       arquivo: documentoPendente.arquivo,
+      parentId: pastaAtual,
       criadaEm: new Date().toISOString()
     };
     const salvo = await salvarMaterialNoBanco(novoMaterial);
@@ -292,7 +297,7 @@ export default function Home() {
 
   function salvarMateria(event) {
     event.preventDefault();
-    const novoMaterial = { tipo: 'escrito', materia: form.materia.trim() || 'Sem matéria', titulo: form.titulo.trim() || 'Documento sem título', texto: form.texto, criadaEm: new Date().toISOString() };
+    const novoMaterial = { tipo: 'escrito', materia: form.materia.trim() || 'Sem matéria', titulo: form.titulo.trim() || 'Documento sem título', texto: form.texto, parentId: pastaAtual, criadaEm: new Date().toISOString() };
     atualizarMaterias([novoMaterial, ...materias]);
     void salvarMaterialNoBanco(novoMaterial);
     setForm({ titulo: '', texto: '', url: '', materia: '' });
@@ -301,7 +306,7 @@ export default function Home() {
 
   function salvarLink(event) {
     event.preventDefault();
-    const novoMaterial = { tipo: 'link', materia: form.materia.trim() || 'Sem matéria', titulo: form.titulo.trim(), url: form.url.trim(), criadaEm: new Date().toISOString() };
+    const novoMaterial = { tipo: 'link', materia: form.materia.trim() || 'Sem matéria', titulo: form.titulo.trim(), url: form.url.trim(), parentId: pastaAtual, criadaEm: new Date().toISOString() };
     atualizarMaterias([novoMaterial, ...materias]);
     void salvarMaterialNoBanco(novoMaterial);
     setForm({ titulo: '', texto: '', url: '', materia: '' });
@@ -311,6 +316,26 @@ export default function Home() {
   function abrirModalLink(event) {
     event.preventDefault();
     setModal('link');
+  }
+
+  async function criarSubpasta(parentId) {
+    const titulo = window.prompt('Nome da nova subpasta:')?.trim();
+    if (!titulo) return;
+
+    try {
+      const resposta = await fetch('/api/materials', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tipo: 'pasta', titulo, materia: titulo, parentId: parentId || null })
+      });
+      if (!resposta.ok) throw new Error('Não foi possível criar a subpasta.');
+      const pasta = await resposta.json();
+      const pastaMapeada = { id: pasta.id, tipo: 'pasta', materia: pasta.materia, titulo: pasta.titulo, parentId: pasta.parent_id || null, criadaEm: pasta.data || new Date().toISOString() };
+      atualizarMaterias([pastaMapeada, ...materias]);
+    } catch (error) {
+      alert(error.message || 'Não foi possível criar a subpasta.');
+    }
   }
 
   async function lerArquivo(event, tipo) {
@@ -354,14 +379,8 @@ export default function Home() {
 
   return <main className="screen dashboard">
     <header className="dash-header"><div><h2>Hipocampo Digital</h2><p>Repositório Universal Ativo</p></div><button type="button" className="btn-logout" onClick={handleLogout}>Sair</button></header>
-    <Albumes materias={materias} selecionada={materiaSelecionada} selecionar={setMateriaSelecionada} excluir={excluirMaterial} />
-    <h3 className="section-title">Adicionar Novo Estímulo</h3>
-    <div className="grid-container">
-      <button type="button" className="card" onClick={() => setModal('materia')}><span className="card-icon">📝</span><span>Matéria<br />Escrita</span></button>
-      <button type="button" className="card" onClick={() => fotoInput.current.click()}><span className="card-icon">📷</span><span>Matéria<br />por Foto</span></button>
-      <button type="button" className="card" onClick={abrirModalLink}><span className="card-icon">🔗</span><span>Matéria<br />de Link</span></button>
-      <button type="button" className="card" onClick={() => documentoInput.current.click()}><span className="card-icon">📄</span><span>Matéria por Documento (PDF, Doc)</span></button>
-    </div>
+    {!materiasAbertas && <section className="home-actions"><p className="home-actions-copy">Organize seus estudos por matérias e subpastas.</p><button type="button" className="btn-materias bg-synapse-primary text-white" onClick={() => { setMateriasAbertas(true); setPastaAtual(null); }}><span aria-hidden="true">📁</span> Ver Minhas Matérias</button></section>}
+    {materiasAbertas && <section className="materias-explorer"><button type="button" className="back-link" onClick={() => { setMateriasAbertas(false); setPastaAtual(null); }}>Voltar para o início</button><Albumes materias={materias} pastaAtual={pastaAtual} selecionar={setPastaAtual} criarSubpasta={criarSubpasta} excluir={excluirMaterial} />{pastaAtual && <><h3 className="section-title">Adicionar Novo Estímulo</h3><MaterialActions setModal={setModal} fotoInput={fotoInput} documentoInput={documentoInput} abrirModalLink={abrirModalLink} /></>}</section>}
     <input ref={fotoInput} className="file-input" type="file" accept="image/*" onChange={(event) => lerArquivo(event, 'foto')} />
     <input ref={documentoInput} className="file-input" type="file" accept="application/pdf,.pdf,.doc,.docx" onChange={(event) => lerArquivo(event, 'documento')} />
     {modal && <Modal tipo={modal} form={form} setForm={setForm} materias={materias} fechar={() => { if (!salvandoFoto) { setModal(null); setFotoPendente(null); setDocumentoPendente(null); } }} salvar={modal === 'link' ? salvarLink : modal === 'foto' ? salvarFoto : modal === 'documento' ? salvarDocumento : salvarMateria} foto={fotoPendente} documento={documentoPendente} salvando={salvandoFoto} />}
@@ -381,21 +400,18 @@ function Materia({ materia, excluir }) {
   return <article className="list-item saved-item"><div className="material-heading"><div><div className="li-title">{materia.titulo}</div><div className="li-desc">{materia.materia || 'Sem matéria'} • {descricao} • {new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short', timeStyle: 'short' }).format(new Date(materia.criadaEm))}</div></div><button type="button" className="delete-material" onClick={() => excluir(materia)} aria-label={`Excluir ${materia.titulo}`} title="Excluir material">🗑️</button></div>{materia.tipo === 'foto' && <img className="materia-foto" src={materia.imagem} alt={materia.titulo} />}{materia.tipo === 'link' && <a className="materia-link" href={materia.url}>Abrir material de estudos</a>}{materia.tipo === 'documento' && <a className="materia-link" href={materia.arquivo} download={materia.titulo}>Baixar documento</a>}{materia.tipo === 'escrito' && <div className="li-content rich-content" dangerouslySetInnerHTML={{ __html: materia.texto }} />}</article>;
 }
 
-function Albumes({ materias, selecionada, selecionar, excluir }) {
-  const grupos = materias.reduce((acumulado, material) => {
-    const nome = material.materia?.trim() || 'Sem matéria';
-    if (!acumulado[nome]) acumulado[nome] = [];
-    acumulado[nome].push(material);
-    return acumulado;
-  }, {});
+function Albumes({ materias, pastaAtual, selecionar, criarSubpasta, excluir }) {
+  const [menuAberto, setMenuAberto] = useState(null);
+  const pasta = materias.find((item) => item.id === pastaAtual && item.tipo === 'pasta');
+  const pastas = materias.filter((item) => item.tipo === 'pasta' && item.parentId === pastaAtual).sort((a, b) => a.titulo.localeCompare(b.titulo, 'pt-BR'));
+  const conteudos = materias.filter((item) => item.tipo !== 'pasta' && item.parentId === pastaAtual);
+  const voltar = () => selecionar(pasta?.parentId || null);
 
-  if (selecionada) {
-    const materiais = grupos[selecionada] || [];
-    return <section className="albums-view"><button type="button" className="back-link" onClick={() => selecionar(null)}>Voltar para Minhas Matérias</button><div className="albums-heading"><span className="album-large-icon">📁</span><div><h3>{selecionada}</h3><p>{materiais.length} material(is) salvo(s)</p></div></div>{materiais.map((material, index) => <Materia key={`${material.criadaEm}-${index}`} materia={material} excluir={excluir} />)}</section>;
-  }
+  return <section className="albums-view"><div className="albums-intro"><div className="albums-heading"><span className="album-large-icon">📁</span><div><h3>{pasta ? pasta.titulo : 'Minhas Matérias'}</h3><p>{pasta ? 'Pastas e materiais nesta matéria.' : 'Escolha uma matéria para começar.'}</p></div></div>{pasta && <button type="button" className="back-link" onClick={voltar}>Voltar para a pasta anterior</button>}</div><div className="albums-grid">{pastas.map((item) => <div className="album-card" key={item.id}><button type="button" className="folder-open" onClick={() => selecionar(item.id)}><span className="album-icon">📁</span><strong>{item.titulo}</strong><span>{materias.filter((filho) => filho.parentId === item.id).length} item(ns)</span></button><button type="button" className="folder-menu" onClick={() => setMenuAberto(menuAberto === item.id ? null : item.id)} aria-label={`Abrir menu de ${item.titulo}`} title="Opções da pasta">⋯</button>{menuAberto === item.id && <div className="folder-popover"><button type="button" onClick={() => { setMenuAberto(null); criarSubpasta(item.id); }}>Nova Subpasta</button></div>}</div>)}{!pastas.length && !conteudos.length && <p className="empty-state">Nenhuma pasta ou material aqui.</p>}</div>{conteudos.map((material, index) => <Materia key={`${material.id || material.criadaEm}-${index}`} materia={material} excluir={excluir} />)}<button type="button" className="subfolder-action" onClick={() => criarSubpasta(pasta?.id || null)}>{pasta ? '+ Nova Subpasta' : '+ Nova Matéria'}</button></section>;
+}
 
-  const nomes = Object.keys(grupos).sort((a, b) => a.localeCompare(b, 'pt-BR'));
-  return <section className="albums-view"><div className="albums-intro"><h3 className="section-title">Minhas Matérias</h3><p>Organize seus estudos por assunto.</p></div>{nomes.length === 0 ? <p className="empty-state">Nenhuma matéria criada ainda.</p> : <div className="albums-grid">{nomes.map((nome) => <button type="button" className="album-card" key={nome} onClick={() => selecionar(nome)}><span className="album-icon">📁</span><strong>{nome}</strong><span>{grupos[nome].length} material(is)</span></button>)}</div>}</section>;
+function MaterialActions({ setModal, fotoInput, documentoInput, abrirModalLink }) {
+  return <div className="grid-container"><button type="button" className="card" onClick={() => setModal('materia')}><span className="card-icon">📝</span><span>Matéria<br />Escrita</span></button><button type="button" className="card" onClick={() => fotoInput.current.click()}><span className="card-icon">📷</span><span>Matéria<br />por Foto</span></button><button type="button" className="card" onClick={abrirModalLink}><span className="card-icon">🔗</span><span>Matéria<br />de Link</span></button><button type="button" className="card" onClick={() => documentoInput.current.click()}><span className="card-icon">📄</span><span>Matéria por Documento (PDF, Doc)</span></button></div>;
 }
 
 function Modal({ tipo, form, setForm, materias, fechar, salvar, foto, documento, salvando }) {

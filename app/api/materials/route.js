@@ -15,19 +15,27 @@ export async function POST(request) {
   }
 
   try {
-    const { materia, tipo, titulo, conteudo } = await request.json();
+    const { materia, tipo, titulo, conteudo, parentId } = await request.json();
     const materiaNormalizada = materia?.trim() || 'Geral';
     const tituloNormalizado = titulo?.trim();
 
-    if (!tipo || !tituloNormalizado) {
+    if (!tipo || !tituloNormalizado || !['pasta', 'escrito', 'foto', 'link', 'documento'].includes(tipo)) {
       return Response.json({ message: 'Tipo e título são obrigatórios.' }, { status: 400 });
     }
 
     const sql = getDb();
+    if (parentId) {
+      const [pastaPai] = await sql`
+        SELECT id FROM materials
+        WHERE id = ${parentId} AND user_id = ${userId} AND tipo = 'pasta'
+      `;
+      if (!pastaPai) return Response.json({ message: 'A pasta de destino não foi encontrada.' }, { status: 404 });
+    }
+
     const [material] = await sql`
-      INSERT INTO materials (user_id, materia, tipo, titulo, conteudo)
-      VALUES (${userId}, ${materiaNormalizada}, ${tipo}, ${tituloNormalizado}, ${conteudo || null})
-      RETURNING id, user_id, materia, tipo, titulo, conteudo, data
+      INSERT INTO materials (user_id, materia, tipo, titulo, conteudo, parent_id)
+      VALUES (${userId}, ${materiaNormalizada}, ${tipo}, ${tituloNormalizado}, ${conteudo || null}, ${parentId || null})
+      RETURNING id, user_id, materia, tipo, titulo, conteudo, parent_id, data
     `;
 
     return NextResponse.json(material, { status: 201 });
@@ -51,7 +59,7 @@ export async function GET(request) {
   try {
     const sql = getDb();
     const materiais = await sql`
-      SELECT id, user_id, materia, tipo, titulo, conteudo, data
+      SELECT id, user_id, materia, tipo, titulo, conteudo, parent_id, data
       FROM materials
       WHERE user_id = ${userId}
       ORDER BY data DESC
