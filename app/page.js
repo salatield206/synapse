@@ -2,6 +2,7 @@
 
 import { signIn, signOut, useSession } from 'next-auth/react';
 import { useEffect, useRef, useState } from 'react';
+import RichTextEditor from './RichTextEditor';
 
 const STORAGE_KEY = 'synapse-materias';
 const SENHA_FRACA_MENSAGEM = 'Senha muito fraca. Por favor, não utilize sequências fáceis de números ou letras.';
@@ -291,7 +292,7 @@ export default function Home() {
 
   function salvarMateria(event) {
     event.preventDefault();
-    const novoMaterial = { tipo: 'escrito', materia: form.materia.trim() || 'Sem matéria', titulo: form.titulo.trim(), texto: form.texto.trim(), criadaEm: new Date().toISOString() };
+    const novoMaterial = { tipo: 'escrito', materia: form.materia.trim() || 'Sem matéria', titulo: form.titulo.trim() || 'Documento sem título', texto: form.texto, criadaEm: new Date().toISOString() };
     atualizarMaterias([novoMaterial, ...materias]);
     void salvarMaterialNoBanco(novoMaterial);
     setForm({ titulo: '', texto: '', url: '', materia: '' });
@@ -359,7 +360,7 @@ export default function Home() {
       <button type="button" className="card" onClick={() => setModal('materia')}><span className="card-icon">📝</span><span>Matéria<br />Escrita</span></button>
       <button type="button" className="card" onClick={() => fotoInput.current.click()}><span className="card-icon">📷</span><span>Matéria<br />por Foto</span></button>
       <button type="button" className="card" onClick={abrirModalLink}><span className="card-icon">🔗</span><span>Matéria<br />de Link</span></button>
-      <button type="button" className="card full-width" onClick={() => documentoInput.current.click()}><span className="card-icon">📄</span><span>Matéria por Documento (PDF, Doc)</span></button>
+      <button type="button" className="card" onClick={() => documentoInput.current.click()}><span className="card-icon">📄</span><span>Matéria por Documento (PDF, Doc)</span></button>
     </div>
     <h3 className="section-title">Revisão Recente</h3>
     {materias.map((materia, index) => <Materia key={`${materia.criadaEm}-${index}`} materia={materia} excluir={excluirMaterial} />)}
@@ -379,7 +380,7 @@ function EyeOffIcon() {
 
 function Materia({ materia, excluir }) {
   const descricao = { foto: 'Matéria por foto', link: 'Link de estudos', documento: 'Documento', escrito: 'Matéria escrita' }[materia.tipo];
-  return <article className="list-item saved-item"><div className="material-heading"><div><div className="li-title">{materia.titulo}</div><div className="li-desc">{materia.materia || 'Sem matéria'} • {descricao} • {new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short', timeStyle: 'short' }).format(new Date(materia.criadaEm))}</div></div><button type="button" className="delete-material" onClick={() => excluir(materia)} aria-label={`Excluir ${materia.titulo}`} title="Excluir material">🗑️</button></div>{materia.tipo === 'foto' && <img className="materia-foto" src={materia.imagem} alt={materia.titulo} />}{materia.tipo === 'link' && <a className="materia-link" href={materia.url}>Abrir material de estudos</a>}{materia.tipo === 'documento' && <a className="materia-link" href={materia.arquivo} download={materia.titulo}>Baixar documento</a>}{materia.tipo === 'escrito' && <div className="li-content">{materia.texto}</div>}</article>;
+  return <article className="list-item saved-item"><div className="material-heading"><div><div className="li-title">{materia.titulo}</div><div className="li-desc">{materia.materia || 'Sem matéria'} • {descricao} • {new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short', timeStyle: 'short' }).format(new Date(materia.criadaEm))}</div></div><button type="button" className="delete-material" onClick={() => excluir(materia)} aria-label={`Excluir ${materia.titulo}`} title="Excluir material">🗑️</button></div>{materia.tipo === 'foto' && <img className="materia-foto" src={materia.imagem} alt={materia.titulo} />}{materia.tipo === 'link' && <a className="materia-link" href={materia.url}>Abrir material de estudos</a>}{materia.tipo === 'documento' && <a className="materia-link" href={materia.arquivo} download={materia.titulo}>Baixar documento</a>}{materia.tipo === 'escrito' && <div className="li-content rich-content" dangerouslySetInnerHTML={{ __html: materia.texto }} />}</article>;
 }
 
 function Albumes({ materias, selecionada, selecionar, excluir }) {
@@ -400,5 +401,6 @@ function Albumes({ materias, selecionada, selecionar, excluir }) {
 }
 
 function Modal({ tipo, form, setForm, fechar, salvar, foto, documento, salvando }) {
-  return <div className="modal active"><div className="modal-content"><div className="modal-header"><h2>{tipo === 'link' ? 'Salvar link de estudos' : tipo === 'foto' ? 'Salvar foto' : tipo === 'documento' ? 'Salvar documento' : 'Escrever matéria'}</h2><button type="button" className="modal-close" onClick={fechar} disabled={salvando}>&times;</button></div><form onSubmit={salvar}>{tipo === 'foto' && foto && <img className="foto-preview" src={foto.imagem} alt="Pré-visualização da foto" />}{tipo === 'documento' && documento && <p className="file-pending">Arquivo selecionado: {documento.titulo}</p>}<div className="input-group"><label>Nome da Matéria</label><input className="input-real" value={form.materia} onChange={(event) => setForm({ ...form, materia: event.target.value })} placeholder="Ex: Matemática, Biologia" required /></div><div className="input-group"><label>Título</label><input className="input-real" value={form.titulo} onChange={(event) => setForm({ ...form, titulo: event.target.value })} required /></div>{tipo === 'link' ? <div className="input-group"><label>Link de estudos</label><input className="input-real" type="url" value={form.url} onChange={(event) => setForm({ ...form, url: event.target.value })} required /></div> : tipo !== 'foto' && tipo !== 'documento' && <div className="input-group"><label>Texto</label><textarea className="input-real textarea-real" value={form.texto} onChange={(event) => setForm({ ...form, texto: event.target.value })} required /></div>}<button className="btn-primary" type="submit" disabled={salvando}>{salvando ? 'Carregando...' : 'Salvar'}</button></form></div></div>;
+  const materiaEscrita = tipo === 'materia';
+  return <div className={`modal active ${materiaEscrita ? 'modal-document-editor' : ''}`}><div className="modal-content"><div className="modal-header"><h2>{tipo === 'link' ? 'Salvar link de estudos' : tipo === 'foto' ? 'Salvar foto' : tipo === 'documento' ? 'Salvar documento' : 'Novo documento'}</h2><button type="button" className="modal-close" onClick={fechar} disabled={salvando}>&times;</button></div><form onSubmit={salvar}>{tipo === 'foto' && foto && <img className="foto-preview" src={foto.imagem} alt="Pré-visualização da foto" />}{tipo === 'documento' && documento && <p className="file-pending">Arquivo selecionado: {documento.titulo}</p>}<div className="input-group"><label>Nome da Matéria</label><input className="input-real" value={form.materia} onChange={(event) => setForm({ ...form, materia: event.target.value })} placeholder="Ex: Matemática, Biologia" required /></div>{!materiaEscrita && <div className="input-group"><label>Título</label><input className="input-real" value={form.titulo} onChange={(event) => setForm({ ...form, titulo: event.target.value })} required /></div>}{tipo === 'link' ? <div className="input-group"><label>Link de estudos</label><input className="input-real" type="url" value={form.url} onChange={(event) => setForm({ ...form, url: event.target.value })} required /></div> : materiaEscrita ? <RichTextEditor value={form.texto} onChange={(texto) => setForm({ ...form, texto })} /> : tipo !== 'foto' && tipo !== 'documento' && <div className="input-group"><label>Texto</label><textarea className="input-real textarea-real" value={form.texto} onChange={(event) => setForm({ ...form, texto: event.target.value })} required /></div>}<button className="btn-primary" type="submit" disabled={salvando}>{salvando ? 'Carregando...' : materiaEscrita ? 'Salvar Documento' : 'Salvar'}</button></form></div></div>;
 }

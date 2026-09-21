@@ -9,6 +9,9 @@
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.1.0",
+    "@tiptap/extension-underline": "^3.31.3",
+    "@tiptap/react": "^3.31.3",
+    "@tiptap/starter-kit": "^3.31.3",
     "bcryptjs": "^3.0.3",
     "next": "latest",
     "next-auth": "^4.24.15",
