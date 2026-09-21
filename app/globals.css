@@ -57,6 +57,7 @@ input, textarea, select { font-size: 16px; }
 
 .foto-preview { display: block; width: 100%; max-height: 220px; object-fit: contain; margin-bottom: 18px; border-radius: 8px; background: var(--bg-card); border: 1px solid var(--border); }
 
+@media (max-width: 600px) { .drive-heading { align-items: flex-start; flex-direction: column; } .drive-folder-grid { grid-template-columns: 1fr; } }
 @media (max-width: 480px) { .albums-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; } .album-card { min-height: 125px; padding: 12px; } }
 
 .screen { min-height: 100vh; padding: 30px 25px; animation: fadeIn .4s ease-out; }
@@ -67,6 +68,31 @@ input, textarea, select { font-size: 16px; }
 .btn-materias { display: inline-flex; align-items: center; gap: 10px; border: 1px solid var(--primary); border-radius: 10px; background: var(--primary); color: #fff; padding: 16px 24px; font-size: 14px; font-weight: bold; cursor: pointer; box-shadow: 0 8px 18px rgba(131, 85, 146, 0.2); transition: transform .2s ease, background .2s ease; }
 .btn-materias:hover { background: var(--primary-hover); transform: translateY(-2px); }
 .materias-explorer { max-width: 980px; margin: 0 auto; }
+.drive-breadcrumbs { display: flex; align-items: center; flex-wrap: wrap; gap: 5px; margin: 8px 0 22px; color: var(--text-muted); font-size: 13px; }
+.drive-breadcrumbs button { display: inline-flex; align-items: center; gap: 5px; border: 0; background: transparent; color: var(--primary-hover); padding: 4px 5px; cursor: pointer; font-weight: bold; }
+.drive-breadcrumbs button:hover { color: var(--text-main); text-decoration: underline; }
+.breadcrumb-level { display: inline-flex; align-items: center; gap: 5px; }
+.drive-heading { display: flex; align-items: center; justify-content: space-between; gap: 18px; margin-bottom: 20px; }
+.drive-heading h3 { color: var(--text-main); font-size: 22px; }
+.drive-heading p { color: var(--text-muted); font-size: 13px; margin-top: 5px; }
+.drive-new-folder { display: inline-flex; align-items: center; gap: 7px; flex: 0 0 auto; border: 1px solid var(--border); border-radius: 8px; background: var(--bg-card); color: var(--primary-hover); padding: 9px 12px; font-weight: bold; cursor: pointer; }
+.drive-new-folder:hover { border-color: var(--primary); color: var(--primary); }
+.drive-folder-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.drive-folder-card { position: relative; min-height: 66px; display: flex; align-items: center; justify-content: space-between; border: 1px solid var(--border); border-radius: 8px; background: #fff; color: var(--text-main); padding: 10px 12px; box-shadow: 0 1px 3px rgba(45, 27, 51, 0.05); }
+.drive-folder-card:hover { border-color: var(--primary); box-shadow: 0 3px 9px rgba(45, 27, 51, 0.1); }
+.drive-folder-main { display: flex; min-width: 0; align-items: center; gap: 10px; border: 0; background: transparent; color: var(--text-main); padding: 5px 0; text-align: left; cursor: pointer; }
+.drive-folder-main svg { flex: 0 0 auto; color: var(--primary); }
+.drive-folder-main span { overflow: hidden; font-size: 14px; font-weight: bold; text-overflow: ellipsis; white-space: nowrap; }
+.drive-menu-button { display: inline-grid; flex: 0 0 auto; place-items: center; border: 0; border-radius: 6px; background: transparent; color: var(--text-muted); padding: 6px; cursor: pointer; }
+.drive-menu-button:hover { background: var(--bg-main); color: var(--text-main); }
+.drive-popover { top: 42px; right: 10px; }
+.drive-popover button { display: flex; align-items: center; gap: 8px; }
+.drive-files { margin-top: 28px; }
+.drive-files h4 { display: flex; align-items: center; gap: 7px; margin-bottom: 10px; border-bottom: 1px solid var(--border); color: var(--text-main); padding-bottom: 8px; font-size: 14px; }
+.drive-file-row { position: relative; display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; margin-bottom: 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg-card); color: var(--text-main); padding: 13px 14px; box-shadow: 0 1px 3px rgba(45, 27, 51, 0.04); }
+.drive-file-main { display: flex; min-width: 0; align-items: flex-start; gap: 10px; }
+.drive-file-main > svg { flex: 0 0 auto; margin-top: 2px; color: var(--primary); }
+.drive-item-actions { position: relative; flex: 0 0 auto; }
 .login { max-width: 480px; margin: auto; }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
 

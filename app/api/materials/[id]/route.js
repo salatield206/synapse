@@ -2,6 +2,33 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '../../auth/[...nextauth]/route';
 import { getDb } from '../../../../lib/db';
 
+export async function PATCH(request, { params }) {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.id) {
+    return Response.json({ message: 'Usuário não autenticado.' }, { status: 401 });
+  }
+
+  try {
+    const { id } = await params;
+    const { titulo } = await request.json();
+    const tituloNormalizado = titulo?.trim();
+    if (!id || !tituloNormalizado) return Response.json({ message: 'Nome inválido.' }, { status: 400 });
+
+    const sql = getDb();
+    const [atualizado] = await sql`
+      UPDATE materials
+      SET titulo = ${tituloNormalizado}, materia = CASE WHEN tipo = 'pasta' THEN ${tituloNormalizado} ELSE materia END
+      WHERE id = ${id} AND user_id = ${session.user.id}
+      RETURNING id, user_id, materia, tipo, titulo, conteudo, parent_id, data
+    `;
+    if (!atualizado) return Response.json({ message: 'Item não encontrado.' }, { status: 404 });
+    return Response.json(atualizado);
+  } catch (error) {
+    console.error('Erro ao renomear material:', error);
+    return Response.json({ message: 'Não foi possível renomear o item.' }, { status: 500 });
+  }
+}
+
 export async function DELETE(request, { params }) {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) {

@@ -16,6 +16,7 @@
     "@tiptap/react": "^3.31.3",
     "@tiptap/starter-kit": "^3.31.3",
     "bcryptjs": "^3.0.3",
+    "lucide-react": "^1.47.0",
     "next": "latest",
     "next-auth": "^4.24.15",
     "react": "latest",

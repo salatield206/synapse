@@ -2,6 +2,7 @@
 
 import { signIn, signOut, useSession } from 'next-auth/react';
 import { useEffect, useRef, useState } from 'react';
+import { ChevronRight, File, FileImage, FileText, Folder, FolderPlus, Home as HomeIcon, Link as LinkIcon, MoreVertical, Pencil, Trash2 } from 'lucide-react';
 import RichTextEditor from './RichTextEditor';
 
 const STORAGE_KEY = 'synapse-materias';
@@ -338,6 +339,23 @@ export default function Home() {
     }
   }
 
+  async function renomearMaterial(material) {
+    const titulo = window.prompt('Novo nome:', material.titulo)?.trim();
+    if (!titulo || titulo === material.titulo) return;
+
+    try {
+      const resposta = await fetch(`/api/materials/${material.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ titulo })
+      });
+      if (!resposta.ok) throw new Error('Não foi possível renomear o item.');
+      setMaterias((atuais) => atuais.map((item) => item.id === material.id ? { ...item, titulo, ...(item.tipo === 'pasta' ? { materia: titulo } : {}) } : item));
+    } catch (error) {
+      alert(error.message || 'Não foi possível renomear o item.');
+    }
+  }
+
   async function lerArquivo(event, tipo) {
     const arquivo = event.target.files?.[0];
     if (!arquivo) return;
@@ -381,7 +399,7 @@ export default function Home() {
     <header className="dash-header"><div><h2>Hipocampo Digital</h2><p>Repositório Universal Ativo</p></div><button type="button" className="btn-logout" onClick={handleLogout}>Sair</button></header>
     <section className="home-create"><h3 className="section-title">Adicionar Novo Estímulo</h3><MaterialActions setModal={setModal} fotoInput={fotoInput} documentoInput={documentoInput} abrirModalLink={abrirModalLink} /></section>
     {!materiasAbertas && <section className="home-actions"><p className="home-actions-copy">Acesse o seu acervo organizado por matérias e subpastas.</p><button type="button" className="btn-materias bg-synapse-primary text-white" onClick={() => { setMateriasAbertas(true); setPastaAtual(null); }}><span aria-hidden="true">📁</span> Acessar Matérias Criadas</button></section>}
-    {materiasAbertas && <section className="materias-explorer"><button type="button" className="back-link" onClick={() => { setMateriasAbertas(false); setPastaAtual(null); }}>Voltar para o início</button><Albumes materias={materias} pastaAtual={pastaAtual} selecionar={setPastaAtual} criarSubpasta={criarSubpasta} excluir={excluirMaterial} /></section>}
+    {materiasAbertas && <section className="materias-explorer"><Albumes materias={materias} pastaAtual={pastaAtual} selecionar={setPastaAtual} criarSubpasta={criarSubpasta} excluir={excluirMaterial} renomear={renomearMaterial} onExit={() => { setMateriasAbertas(false); setPastaAtual(null); }} /></section>}
     <input ref={fotoInput} className="file-input" type="file" accept="image/*" onChange={(event) => lerArquivo(event, 'foto')} />
     <input ref={documentoInput} className="file-input" type="file" accept="application/pdf,.pdf,.doc,.docx" onChange={(event) => lerArquivo(event, 'documento')} />
     {modal && <Modal tipo={modal} form={form} setForm={setForm} materias={materias} fechar={() => { if (!salvandoFoto) { setModal(null); setFotoPendente(null); setDocumentoPendente(null); } }} salvar={modal === 'link' ? salvarLink : modal === 'foto' ? salvarFoto : modal === 'documento' ? salvarDocumento : salvarMateria} foto={fotoPendente} documento={documentoPendente} salvando={salvandoFoto} />}
@@ -396,19 +414,26 @@ function EyeOffIcon() {
   return <svg aria-hidden="true" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m3 3 18 18" /><path d="M10.6 10.6a2 2 0 0 0 2.8 2.8" /><path d="M9.9 4.2A10.5 10.5 0 0 1 12 4c6.5 0 10 8 10 8a18.3 18.3 0 0 1-3.1 4.3" /><path d="M6.6 6.6C3.7 8.5 2 12 2 12s3.5 8 10 8a10.2 10.2 0 0 0 4.1-.9" /></svg>;
 }
 
-function Materia({ materia, excluir }) {
-  const descricao = { foto: 'Matéria por foto', link: 'Link de estudos', documento: 'Documento', escrito: 'Matéria escrita' }[materia.tipo];
-  return <article className="list-item saved-item"><div className="material-heading"><div><div className="li-title">{materia.titulo}</div><div className="li-desc">{materia.materia || 'Sem matéria'} • {descricao} • {new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short', timeStyle: 'short' }).format(new Date(materia.criadaEm))}</div></div><button type="button" className="delete-material" onClick={() => excluir(materia)} aria-label={`Excluir ${materia.titulo}`} title="Excluir material">🗑️</button></div>{materia.tipo === 'foto' && <img className="materia-foto" src={materia.imagem} alt={materia.titulo} />}{materia.tipo === 'link' && <a className="materia-link" href={materia.url}>Abrir material de estudos</a>}{materia.tipo === 'documento' && <a className="materia-link" href={materia.arquivo} download={materia.titulo}>Baixar documento</a>}{materia.tipo === 'escrito' && <div className="li-content rich-content" dangerouslySetInnerHTML={{ __html: materia.texto }} />}</article>;
+function Materia({ materia, excluir, renomear }) {
+  const [menuAberto, setMenuAberto] = useState(false);
+  const descricao = { foto: 'Foto', link: 'Link', documento: 'Documento', escrito: 'Documento escrito' }[materia.tipo];
+  const IconeArquivo = materia.tipo === 'foto' ? FileImage : materia.tipo === 'link' ? LinkIcon : materia.tipo === 'escrito' ? FileText : File;
+  return <article className="drive-file-row"><div className="drive-file-main"><IconeArquivo size={20} strokeWidth={1.8} aria-hidden="true" /><div><div className="li-title">{materia.titulo}</div><div className="li-desc">{materia.materia || 'Sem matéria'} • {descricao} • {new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short', timeStyle: 'short' }).format(new Date(materia.criadaEm))}</div>{materia.tipo === 'foto' && <img className="materia-foto" src={materia.imagem} alt={materia.titulo} />}{materia.tipo === 'link' && <a className="materia-link" href={materia.url}>Abrir material de estudos</a>}{materia.tipo === 'documento' && <a className="materia-link" href={materia.arquivo} download={materia.titulo}>Baixar documento</a>}{materia.tipo === 'escrito' && <div className="li-content rich-content" dangerouslySetInnerHTML={{ __html: materia.texto }} />}</div></div><div className="drive-item-actions"><button type="button" className="drive-menu-button" onClick={() => setMenuAberto(!menuAberto)} aria-label={`Abrir opções de ${materia.titulo}`} title="Opções do arquivo"><MoreVertical size={18} /></button>{menuAberto && <div className="folder-popover drive-popover"><button type="button" onClick={() => { setMenuAberto(false); renomear(materia); }}><Pencil size={15} /> Renomear</button><button type="button" onClick={() => { setMenuAberto(false); excluir(materia); }}><Trash2 size={15} /> Excluir</button></div>}</div></article>;
 }
 
-function Albumes({ materias, pastaAtual, selecionar, criarSubpasta, excluir }) {
+function Albumes({ materias, pastaAtual, selecionar, criarSubpasta, excluir, renomear, onExit }) {
   const [menuAberto, setMenuAberto] = useState(null);
   const pasta = materias.find((item) => item.id === pastaAtual && item.tipo === 'pasta');
   const pastas = materias.filter((item) => item.tipo === 'pasta' && item.parentId === pastaAtual).sort((a, b) => a.titulo.localeCompare(b.titulo, 'pt-BR'));
   const conteudos = materias.filter((item) => item.tipo !== 'pasta' && item.parentId === pastaAtual);
-  const voltar = () => selecionar(pasta?.parentId || null);
+  const caminho = [];
+  let pastaDoCaminho = pasta;
+  while (pastaDoCaminho) {
+    caminho.unshift(pastaDoCaminho);
+    pastaDoCaminho = materias.find((item) => item.id === pastaDoCaminho.parentId && item.tipo === 'pasta');
+  }
 
-  return <section className="albums-view"><div className="albums-intro"><div className="albums-heading"><span className="album-large-icon">📁</span><div><h3>{pasta ? pasta.titulo : 'Minhas Matérias'}</h3><p>{pasta ? 'Pastas e materiais nesta matéria.' : 'Escolha uma matéria para começar.'}</p></div></div>{pasta && <button type="button" className="back-link" onClick={voltar}>Voltar para a pasta anterior</button>}</div><div className="albums-grid">{pastas.map((item) => <div className="album-card" key={item.id}><button type="button" className="folder-open" onClick={() => selecionar(item.id)}><span className="album-icon">📁</span><strong>{item.titulo}</strong><span>{materias.filter((filho) => filho.parentId === item.id).length} item(ns)</span></button><button type="button" className="folder-menu" onClick={() => setMenuAberto(menuAberto === item.id ? null : item.id)} aria-label={`Abrir menu de ${item.titulo}`} title="Opções da pasta">⋯</button>{menuAberto === item.id && <div className="folder-popover"><button type="button" onClick={() => { setMenuAberto(null); criarSubpasta(item.id); }}>Nova Subpasta</button></div>}</div>)}{!pastas.length && !conteudos.length && <p className="empty-state">Nenhuma pasta ou material aqui.</p>}</div>{conteudos.map((material, index) => <Materia key={`${material.id || material.criadaEm}-${index}`} materia={material} excluir={excluir} />)}<button type="button" className="subfolder-action" onClick={() => criarSubpasta(pasta?.id || null)}>{pasta ? '+ Nova Subpasta' : '+ Nova Matéria'}</button></section>;
+  return <section className="albums-view"><nav className="drive-breadcrumbs" aria-label="Caminho de navegação"><button type="button" onClick={onExit}><HomeIcon size={16} /> Início</button><ChevronRight size={15} /><button type="button" onClick={() => selecionar(null)}>Minhas Matérias</button>{caminho.map((item) => <span className="breadcrumb-level" key={item.id}><ChevronRight size={15} /><button type="button" onClick={() => selecionar(item.id)}>{item.titulo}</button></span>)}</nav><div className="drive-heading"><div><h3>{pasta ? pasta.titulo : 'Minhas Matérias'}</h3><p>{pasta ? 'Pastas e arquivos nesta matéria.' : 'Organize as suas matérias como no Google Drive.'}</p></div><button type="button" className="drive-new-folder" onClick={() => criarSubpasta(pasta?.id || null)}><FolderPlus size={17} /> Nova pasta</button></div>{pastas.length > 0 && <div className="drive-folder-grid">{pastas.map((item) => <div className="drive-folder-card bg-white rounded-lg" key={item.id}><button type="button" className="drive-folder-main" onClick={() => selecionar(item.id)}><Folder size={22} fill="currentColor" /><span>{item.titulo}</span></button><button type="button" className="drive-menu-button" onClick={() => setMenuAberto(menuAberto === item.id ? null : item.id)} aria-label={`Abrir opções de ${item.titulo}`} title="Opções da pasta"><MoreVertical size={18} /></button>{menuAberto === item.id && <div className="folder-popover drive-popover"><button type="button" onClick={() => { setMenuAberto(null); criarSubpasta(item.id); }}><FolderPlus size={15} /> Nova Subpasta</button><button type="button" onClick={() => { setMenuAberto(null); renomear(item); }}><Pencil size={15} /> Renomear</button><button type="button" onClick={() => { setMenuAberto(null); excluir(item); }}><Trash2 size={15} /> Excluir</button></div>}</div>)}</div>}{conteudos.length > 0 && <section className="drive-files"><h4><FileText size={17} /> Arquivos</h4>{conteudos.map((material, index) => <Materia key={`${material.id || material.criadaEm}-${index}`} materia={material} excluir={excluir} renomear={renomear} />)}</section>}{!pastas.length && !conteudos.length && <p className="empty-state">Nenhuma pasta ou material aqui.</p>}</section>;
 }
 
 function MaterialActions({ setModal, fotoInput, documentoInput, abrirModalLink }) {
