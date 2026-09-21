@@ -5,7 +5,6 @@ import { useEffect, useRef, useState } from 'react';
 import { ChevronRight, File, FileImage, FileText, Folder, FolderPlus, Home as HomeIcon, Link as LinkIcon, MoreVertical, Pencil, Trash2 } from 'lucide-react';
 import RichTextEditor from './RichTextEditor';
 
-const STORAGE_KEY = 'synapse-materias';
 const SENHA_FRACA_MENSAGEM = 'Senha muito fraca. Por favor, não utilize sequências fáceis de números ou letras.';
 
 function senhaTemSequenciaFacil(senha) {
@@ -68,15 +67,7 @@ export default function Home() {
   const documentoInput = useRef(null);
 
   useEffect(() => {
-    try {
-      const salvas = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
-      if (Array.isArray(salvas)) setMaterias(salvas);
-    } catch { setMaterias([]); }
-  }, []);
-
-  useEffect(() => {
     if (status === 'unauthenticated') {
-      localStorage.removeItem(STORAGE_KEY);
       setMaterias([]);
     } else if (status === 'authenticated') {
       fetch('/api/materials')
@@ -99,7 +90,6 @@ export default function Home() {
               return base;
             });
             setMaterias(materiasMapeadas);
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(materiasMapeadas));
           }
         })
         .catch(console.error);
@@ -169,7 +159,6 @@ export default function Home() {
     }
 
     try {
-      localStorage.removeItem(STORAGE_KEY);
       await signOut({ callbackUrl: '/' });
     } catch (error) {
       console.error('Não foi possível encerrar a sessão:', error);
@@ -178,7 +167,6 @@ export default function Home() {
 
   function atualizarMaterias(novas) {
     setMaterias(novas);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(novas));
   }
 
   async function salvarMaterialNoBanco(material) {
@@ -207,7 +195,6 @@ export default function Home() {
       const salvo = await resposta.json();
       setMaterias((atuais) => {
         const atualizadas = atuais.map((item) => item.criadaEm === material.criadaEm ? { ...item, id: salvo.id } : item);
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(atualizadas));
         return atualizadas;
       });
       return salvo;
@@ -292,7 +279,6 @@ export default function Home() {
 
     setMaterias((atuais) => {
       const atualizadas = atuais.filter((item) => item !== material && (!material.id || item.id !== material.id));
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(atualizadas));
       return atualizadas;
     });
   }
@@ -346,7 +332,6 @@ export default function Home() {
       };
       setMaterias((atuais) => {
         const atualizadas = [pastaMapeada, ...atuais.filter((item) => item.id !== pastaMapeada.id)];
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(atualizadas));
         return atualizadas;
       });
     } catch (error) {
