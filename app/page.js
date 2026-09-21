@@ -62,7 +62,7 @@ export default function Home() {
   const [erroSenhaCadastro, setErroSenhaCadastro] = useState('');
   const [loading, setLoading] = useState(false);
   const [erroLogin, setErroLogin] = useState('');
-  const [form, setForm] = useState({ titulo: '', texto: '', url: '', materia: '' });
+  const [form, setForm] = useState({ titulo: '', texto: '', url: '', materia: '', folderId: '' });
   const fotoInput = useRef(null);
   const documentoInput = useRef(null);
 
@@ -184,7 +184,8 @@ export default function Home() {
           tipo: material.tipo,
           titulo: material.titulo,
           conteudo: material.texto || material.url || material.arquivo || material.imagem,
-          parentId: material.parentId || null
+          parentId: material.parentId ?? null,
+          folderId: material.parentId ?? null
         })
       });
       if (!resposta.ok) {
@@ -206,7 +207,10 @@ export default function Home() {
 
   async function salvarFoto(event) {
     event.preventDefault();
-    if (!fotoPendente) return;
+    if (!fotoPendente || !form.folderId) {
+      alert('Selecione uma pasta antes de salvar o material.');
+      return;
+    }
     setSalvandoFoto(true);
 
     const novoMaterial = {
@@ -214,7 +218,7 @@ export default function Home() {
       materia: form.materia.trim() || 'Geral',
       titulo: form.titulo.trim() || fotoPendente.titulo,
       imagem: fotoPendente.imagem,
-      parentId: currentFolderId,
+      parentId: form.folderId,
       criadaEm: new Date().toISOString()
     };
 
@@ -224,7 +228,7 @@ export default function Home() {
       const materialSalvo = { ...novoMaterial, id: salvo.id };
       atualizarMaterias([materialSalvo, ...materias]);
       setFotoPendente(null);
-      setForm({ titulo: '', texto: '', url: '', materia: '' });
+      setForm({ titulo: '', texto: '', url: '', materia: '', folderId: '' });
       setModal(null);
       alert('Salvo com sucesso');
     } catch (error) {
@@ -236,14 +240,17 @@ export default function Home() {
 
   async function salvarDocumento(event) {
     event.preventDefault();
-    if (!documentoPendente) return;
+    if (!documentoPendente || !form.folderId) {
+      alert('Selecione uma pasta antes de salvar o material.');
+      return;
+    }
 
     const novoMaterial = {
       tipo: 'documento',
       materia: form.materia.trim() || 'Geral',
       titulo: form.titulo.trim() || documentoPendente.titulo,
       arquivo: documentoPendente.arquivo,
-      parentId: currentFolderId,
+      parentId: form.folderId,
       criadaEm: new Date().toISOString()
     };
     const salvo = await salvarMaterialNoBanco(novoMaterial);
@@ -254,7 +261,7 @@ export default function Home() {
 
     atualizarMaterias([{ ...novoMaterial, id: salvo.id }, ...materias]);
     setDocumentoPendente(null);
-    setForm({ titulo: '', texto: '', url: '', materia: '' });
+    setForm({ titulo: '', texto: '', url: '', materia: '', folderId: '' });
     setModal(null);
     alert('Salvo com sucesso');
   }
@@ -285,19 +292,27 @@ export default function Home() {
 
   function salvarMateria(event) {
     event.preventDefault();
-    const novoMaterial = { tipo: 'escrito', materia: form.materia.trim() || 'Sem matéria', titulo: form.titulo.trim() || 'Documento sem título', texto: form.texto, parentId: currentFolderId, criadaEm: new Date().toISOString() };
+    if (!form.folderId) {
+      alert('Selecione uma pasta antes de salvar o material.');
+      return;
+    }
+    const novoMaterial = { tipo: 'escrito', materia: form.materia.trim() || 'Sem matéria', titulo: form.titulo.trim() || 'Documento sem título', texto: form.texto, parentId: form.folderId, criadaEm: new Date().toISOString() };
     atualizarMaterias([novoMaterial, ...materias]);
     void salvarMaterialNoBanco(novoMaterial);
-    setForm({ titulo: '', texto: '', url: '', materia: '' });
+    setForm({ titulo: '', texto: '', url: '', materia: '', folderId: '' });
     setModal(null);
   }
 
   function salvarLink(event) {
     event.preventDefault();
-    const novoMaterial = { tipo: 'link', materia: form.materia.trim() || 'Sem matéria', titulo: form.titulo.trim(), url: form.url.trim(), parentId: currentFolderId, criadaEm: new Date().toISOString() };
+    if (!form.folderId) {
+      alert('Selecione uma pasta antes de salvar o material.');
+      return;
+    }
+    const novoMaterial = { tipo: 'link', materia: form.materia.trim() || 'Sem matéria', titulo: form.titulo.trim(), url: form.url.trim(), parentId: form.folderId, criadaEm: new Date().toISOString() };
     atualizarMaterias([novoMaterial, ...materias]);
     void salvarMaterialNoBanco(novoMaterial);
-    setForm({ titulo: '', texto: '', url: '', materia: '' });
+    setForm({ titulo: '', texto: '', url: '', materia: '', folderId: '' });
     setModal(null);
   }
 
@@ -381,7 +396,7 @@ export default function Home() {
       try {
         const imagem = await comprimirImagem(arquivo);
         setFotoPendente({ titulo: arquivo.name, imagem });
-        setForm({ titulo: arquivo.name, texto: '', url: '', materia: '' });
+        setForm({ titulo: arquivo.name, texto: '', url: '', materia: '', folderId: '' });
         setModal('foto');
       } catch (error) {
         alert(error.message || 'Não foi possível processar a foto.');
@@ -395,7 +410,7 @@ export default function Home() {
     leitor.onload = () => {
       if (tipo === 'documento') {
         setDocumentoPendente({ titulo: arquivo.name, arquivo: leitor.result });
-        setForm({ titulo: arquivo.name, texto: '', url: '', materia: '' });
+        setForm({ titulo: arquivo.name, texto: '', url: '', materia: '', folderId: '' });
         setModal('documento');
         return;
       }
@@ -458,8 +473,11 @@ function MaterialActions({ setModal, fotoInput, documentoInput, abrirModalLink }
 
 function Modal({ tipo, form, setForm, materias, fechar, salvar, foto, documento, salvando }) {
   const materiaEscrita = tipo === 'materia';
-  const nomesMaterias = [...new Set(materias.map((material) => material.materia?.trim()).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'pt-BR'));
-  const materiaNova = !form.materia || !nomesMaterias.includes(form.materia);
-  const atualizarMateria = (event) => setForm({ ...form, materia: event.target.value === '__nova__' ? '' : event.target.value });
-  return <div className={`modal active ${materiaEscrita ? 'modal-document-editor' : ''}`}><div className="modal-content"><div className="modal-header"><h2>{tipo === 'link' ? 'Salvar link de estudos' : tipo === 'foto' ? 'Salvar foto' : tipo === 'documento' ? 'Salvar documento' : 'Novo documento'}</h2><button type="button" className="modal-close" onClick={fechar} disabled={salvando}>&times;</button></div><form onSubmit={salvar}>{tipo === 'foto' && foto && <img className="foto-preview" src={foto.imagem} alt="Pré-visualização da foto" />}{tipo === 'documento' && documento && <p className="file-pending">Arquivo selecionado: {documento.titulo}</p>}<div className="input-group"><label>Matéria</label><select className="input-real" value={materiaNova ? '__nova__' : form.materia} onChange={atualizarMateria} required><option value="__nova__">Nova matéria...</option>{nomesMaterias.map((nome) => <option key={nome} value={nome}>{nome}</option>)}</select>{materiaNova && <input className="input-real materia-new-input" value={form.materia} onChange={(event) => setForm({ ...form, materia: event.target.value })} placeholder="Nome da nova matéria" required />}</div>{!materiaEscrita && <div className="input-group"><label>Título</label><input className="input-real" value={form.titulo} onChange={(event) => setForm({ ...form, titulo: event.target.value })} required /></div>}{tipo === 'link' ? <div className="input-group"><label>Link de estudos</label><input className="input-real" type="url" value={form.url} onChange={(event) => setForm({ ...form, url: event.target.value })} required /></div> : materiaEscrita ? <RichTextEditor value={form.texto} onChange={(texto) => setForm({ ...form, texto })} /> : tipo !== 'foto' && tipo !== 'documento' && <div className="input-group"><label>Texto</label><textarea className="input-real textarea-real" value={form.texto} onChange={(event) => setForm({ ...form, texto: event.target.value })} required /></div>}<button className="btn-primary" type="submit" disabled={salvando}>{salvando ? 'Carregando...' : materiaEscrita ? 'Salvar Documento' : 'Salvar'}</button></form></div></div>;
+  const pastas = materias.filter((material) => material.tipo === 'pasta').sort((a, b) => a.titulo.localeCompare(b.titulo, 'pt-BR'));
+  const atualizarPasta = (event) => {
+    const folderId = event.target.value;
+    const pasta = pastas.find((item) => String(item.id) === folderId);
+    setForm({ ...form, folderId, materia: pasta?.titulo || '' });
+  };
+  return <div className={`modal active ${materiaEscrita ? 'modal-document-editor' : ''}`}><div className="modal-content"><div className="modal-header"><h2>{tipo === 'link' ? 'Salvar link de estudos' : tipo === 'foto' ? 'Salvar foto' : tipo === 'documento' ? 'Salvar documento' : 'Novo documento'}</h2><button type="button" className="modal-close" onClick={fechar} disabled={salvando}>&times;</button></div><form onSubmit={salvar}>{tipo === 'foto' && foto && <img className="foto-preview" src={foto.imagem} alt="Pré-visualização da foto" />}{tipo === 'documento' && documento && <p className="file-pending">Arquivo selecionado: {documento.titulo}</p>}<div className="input-group"><label>Pasta de destino</label>{pastas.length === 0 ? <p className="empty-state">Crie uma pasta primeiro antes de adicionar materiais.</p> : <select className="input-real" value={form.folderId} onChange={atualizarPasta} required><option value="">Selecione uma pasta...</option>{pastas.map((pasta) => <option key={pasta.id} value={pasta.id}>{pasta.titulo}</option>)}</select>}</div>{!materiaEscrita && <div className="input-group"><label>Título</label><input className="input-real" value={form.titulo} onChange={(event) => setForm({ ...form, titulo: event.target.value })} required /></div>}{tipo === 'link' ? <div className="input-group"><label>Link de estudos</label><input className="input-real" type="url" value={form.url} onChange={(event) => setForm({ ...form, url: event.target.value })} required /></div> : materiaEscrita ? <RichTextEditor value={form.texto} onChange={(texto) => setForm({ ...form, texto })} /> : tipo !== 'foto' && tipo !== 'documento' && <div className="input-group"><label>Texto</label><textarea className="input-real textarea-real" value={form.texto} onChange={(event) => setForm({ ...form, texto: event.target.value })} required /></div>}<button className="btn-primary" type="submit" disabled={salvando || pastas.length === 0 || !form.folderId}>{salvando ? 'Carregando...' : materiaEscrita ? 'Salvar Documento' : 'Salvar'}</button></form></div></div>;
 }
