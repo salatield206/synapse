@@ -25,19 +25,54 @@ const FontSize = Extension.create({
   }
 });
 
+const LineHeight = Extension.create({
+  name: 'lineHeight',
+  addGlobalAttributes() {
+    return [{
+      types: ['paragraph', 'heading', 'list_item'],
+      attributes: {
+        lineHeight: {
+          default: null,
+          parseHTML: element => element.style.lineHeight || null,
+          renderHTML: attributes => {
+            if (!attributes.lineHeight) return {};
+            return { style: `line-height: ${attributes.lineHeight}` };
+          },
+        },
+      },
+    }];
+  },
+  addCommands() {
+    return {
+      setLineHeight: (lineHeight) => ({ tr, state, dispatch }) => {
+        const { selection } = state;
+        let modified = false;
+        tr.doc.nodesBetween(selection.from, selection.to, (node, pos) => {
+          if (['paragraph', 'heading', 'list_item'].includes(node.type.name)) {
+            tr.setNodeMarkup(pos, undefined, { ...node.attrs, lineHeight });
+            modified = true;
+          }
+        });
+        if (dispatch && modified) return true;
+        return modified;
+      },
+    };
+  }
+});
+
 function ToolButton({ label, active, onClick }) {
   return <button type="button" className={active ? 'editor-tool active' : 'editor-tool'} onClick={onClick} aria-label={label} title={label}>{label}</button>;
 }
 
 export default function RichTextEditor({ value, onChange }) {
   const editor = useEditor({
-    extensions: [StarterKit, Underline, TextStyle, Color, TextAlign.configure({ types: ['heading', 'paragraph'] }), FontSize, Image],
+    extensions: [StarterKit, Underline, TextStyle, Color, TextAlign.configure({ types: ['heading', 'paragraph'] }), FontSize, LineHeight, Image],
     content: value || '',
     immediatelyRender: false,
     editorProps: {
       attributes: {
-        class: 'rich-editor-content p-6 leading-relaxed text-[10px]',
-        style: 'min-height: 250px; font-size: 10px;'
+        class: 'rich-editor-content p-6 text-[10px]',
+        style: 'min-height: 250px; font-size: 10px; line-height: 1.15;'
       },
       handlePaste: (view, event) => {
         const items = event.clipboardData?.items;
@@ -73,12 +108,20 @@ export default function RichTextEditor({ value, onChange }) {
     else chain.unsetMark('textStyle').run();
   };
 
+  const setLineSpacing = (event) => {
+    const spacing = event.target.value;
+    editor.chain().focus().setLineHeight(spacing).run();
+  };
+
   const setTextColor = (event) => editor.chain().focus().setColor(event.target.value).run();
 
   return <div className="rich-editor">
     <div className="rich-editor-toolbar" aria-label="Ferramentas de formatação">
       <select className="editor-select" defaultValue="" onChange={setFontSize} aria-label="Tamanho da fonte">
         <option value="">Tamanho</option><option value="10pt">10</option><option value="12pt">12</option><option value="14pt">14</option><option value="16pt">16</option><option value="18pt">18</option><option value="24pt">24</option><option value="32pt">32</option>
+      </select>
+      <select className="editor-select" defaultValue="" onChange={setLineSpacing} aria-label="Espaçamento entre linhas">
+        <option value="">Espaçamento</option><option value="1.0">1,0</option><option value="1.15">1,15 (Word)</option><option value="1.5">1,5</option><option value="2.0">2,0</option>
       </select>
       <label className="editor-color" title="Cor do texto">Cor <input type="color" defaultValue="#2D1B33" onChange={setTextColor} aria-label="Cor do texto" /></label>
       <ToolButton label="Título 1" active={editor.isActive('heading', { level: 1 })} onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()} />
