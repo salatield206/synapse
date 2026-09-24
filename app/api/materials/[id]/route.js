@@ -10,17 +10,23 @@ export async function PATCH(request, { params }) {
 
   try {
     const { id } = await params;
-    const { titulo } = await request.json();
-    const tituloNormalizado = titulo?.trim();
-    if (!id || !tituloNormalizado) return Response.json({ message: 'Nome inválido.' }, { status: 400 });
+    const { titulo, conteudo } = await request.json();
+    if (!id) return Response.json({ message: 'ID inválido.' }, { status: 400 });
 
     const sql = getDb();
-    const [atualizado] = await sql`
-      UPDATE materials
-      SET titulo = ${tituloNormalizado}, materia = CASE WHEN tipo = 'pasta' THEN ${tituloNormalizado} ELSE materia END
-      WHERE id = ${id} AND user_id = ${session.user.id}
-      RETURNING id, user_id, materia, tipo, titulo, conteudo, parent_id, data
-    `;
+    let query;
+    if (titulo !== undefined && conteudo !== undefined) {
+      query = sql`UPDATE materials SET titulo = ${titulo.trim()}, conteudo = ${conteudo} WHERE id = ${id} AND user_id = ${session.user.id} RETURNING id, user_id, materia, tipo, titulo, conteudo, parent_id, data`;
+    } else if (conteudo !== undefined) {
+      query = sql`UPDATE materials SET conteudo = ${conteudo} WHERE id = ${id} AND user_id = ${session.user.id} RETURNING id, user_id, materia, tipo, titulo, conteudo, parent_id, data`;
+    } else if (titulo !== undefined) {
+      const t = titulo.trim();
+      query = sql`UPDATE materials SET titulo = ${t}, materia = CASE WHEN tipo = 'pasta' THEN ${t} ELSE materia END WHERE id = ${id} AND user_id = ${session.user.id} RETURNING id, user_id, materia, tipo, titulo, conteudo, parent_id, data`;
+    } else {
+      return Response.json({ message: 'Nada para atualizar.' }, { status: 400 });
+    }
+    
+    const [atualizado] = await query;
     if (!atualizado) return Response.json({ message: 'Item não encontrado.' }, { status: 404 });
     return Response.json(atualizado);
   } catch (error) {
