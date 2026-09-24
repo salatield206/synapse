@@ -56,7 +56,7 @@ export default function RichTextEditor({ value, onChange }) {
   return <div className="rich-editor">
     <div className="rich-editor-toolbar" aria-label="Ferramentas de formatação">
       <select className="editor-select" defaultValue="" onChange={setFontSize} aria-label="Tamanho da fonte">
-        <option value="">Tamanho</option><option value="12pt">12</option><option value="14pt">14</option><option value="16pt">16</option><option value="18pt">18</option><option value="24pt">24</option><option value="32pt">32</option>
+        <option value="">Tamanho</option><option value="10pt">10</option><option value="12pt">12</option><option value="14pt">14</option><option value="16pt">16</option><option value="18pt">18</option><option value="24pt">24</option><option value="32pt">32</option>
       </select>
       <label className="editor-color" title="Cor do texto">Cor <input type="color" defaultValue="#2D1B33" onChange={setTextColor} aria-label="Cor do texto" /></label>
       <ToolButton label="Título 1" active={editor.isActive('heading', { level: 1 })} onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()} />
