@@ -83,7 +83,7 @@ input, textarea, select { font-size: 16px; }
 .drive-folder-main { position: absolute; inset: 0; z-index: 1; display: flex; width: 100%; min-width: 0; height: 100%; align-items: center; gap: 10px; border: 0; background: transparent; color: var(--text-main); padding: 10px 46px 10px 12px; text-align: left; cursor: pointer; }
 .drive-folder-main svg { flex: 0 0 auto; color: var(--primary); }
 .drive-folder-main span { overflow: hidden; font-size: 14px; font-weight: bold; text-overflow: ellipsis; white-space: nowrap; }
-.drive-menu-button { position: relative; z-index: 2; display: inline-grid; flex: 0 0 auto; place-items: center; border: 0; border-radius: 6px; background: transparent; color: var(--text-muted); padding: 6px; cursor: pointer; }
+.drive-menu-button { position: absolute; top: 8px; right: 8px; z-index: 2; display: inline-grid; place-items: center; border: 0; border-radius: 6px; background: transparent; color: var(--text-muted); padding: 6px; cursor: pointer; }
 .drive-menu-button:hover { background: var(--bg-main); color: var(--text-main); }
 .drive-popover { top: 42px; right: 10px; }
 .drive-popover button { display: flex; align-items: center; gap: 8px; }
