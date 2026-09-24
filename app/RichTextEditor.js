@@ -35,7 +35,8 @@ export default function RichTextEditor({ value, onChange }) {
     immediatelyRender: false,
     editorProps: {
       attributes: {
-        class: 'rich-editor-content'
+        class: 'rich-editor-content p-6 leading-relaxed text-[10px]',
+        style: 'min-height: 250px; font-size: 10px;'
       }
     },
     onUpdate: ({ editor: currentEditor }) => onChange(currentEditor.getHTML())
@@ -59,8 +60,6 @@ export default function RichTextEditor({ value, onChange }) {
       </select>
       <label className="editor-color" title="Cor do texto">Cor <input type="color" defaultValue="#2D1B33" onChange={setTextColor} aria-label="Cor do texto" /></label>
       <ToolButton label="Título 1" active={editor.isActive('heading', { level: 1 })} onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()} />
-      <ToolButton label="Título 2" active={editor.isActive('heading', { level: 2 })} onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()} />
-      <ToolButton label="Título 3" active={editor.isActive('heading', { level: 3 })} onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()} />
       <ToolButton label="Negrito" active={editor.isActive('bold')} onClick={() => editor.chain().focus().toggleBold().run()} />
       <ToolButton label="Itálico" active={editor.isActive('italic')} onClick={() => editor.chain().focus().toggleItalic().run()} />
       <ToolButton label="Sublinhado" active={editor.isActive('underline')} onClick={() => editor.chain().focus().toggleUnderline().run()} />
