@@ -7,6 +7,7 @@ import StarterKit from '@tiptap/starter-kit';
 import TextAlign from '@tiptap/extension-text-align';
 import { TextStyle } from '@tiptap/extension-text-style';
 import Underline from '@tiptap/extension-underline';
+import Image from '@tiptap/extension-image';
 
 const FontSize = Extension.create({
   name: 'fontSize',
@@ -30,13 +31,34 @@ function ToolButton({ label, active, onClick }) {
 
 export default function RichTextEditor({ value, onChange }) {
   const editor = useEditor({
-    extensions: [StarterKit, Underline, TextStyle, Color, TextAlign.configure({ types: ['heading', 'paragraph'] }), FontSize],
+    extensions: [StarterKit, Underline, TextStyle, Color, TextAlign.configure({ types: ['heading', 'paragraph'] }), FontSize, Image],
     content: value || '',
     immediatelyRender: false,
     editorProps: {
       attributes: {
         class: 'rich-editor-content p-6 leading-relaxed text-[10px]',
         style: 'min-height: 250px; font-size: 10px;'
+      },
+      handlePaste: (view, event) => {
+        const items = event.clipboardData?.items;
+        if (!items) return false;
+        let hasImage = false;
+        for (const item of items) {
+          if (item.type.indexOf('image') === 0) {
+            hasImage = true;
+            const file = item.getAsFile();
+            const reader = new FileReader();
+            reader.onload = (e) => {
+              const src = e.target.result;
+              const { schema } = view.state;
+              const node = schema.nodes.image.create({ src });
+              const transaction = view.state.tr.replaceSelectionWith(node);
+              view.dispatch(transaction);
+            };
+            reader.readAsDataURL(file);
+          }
+        }
+        return hasImage;
       }
     },
     onUpdate: ({ editor: currentEditor }) => onChange(currentEditor.getHTML())
